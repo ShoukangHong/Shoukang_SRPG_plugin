@@ -1,7 +1,8 @@
 //=============================================================================
 // Shoukang_SRPG_scriptcall.js
 //-----------------------------------------------------------------------------
-// add script call in if(...)
+//Note: This plugin is in progress!
+//add script call in if(...)
 //this.isUnitDetected(regionId,...rest)
 //put regionId and all the eventId in rest part.
 //=============================================================================
