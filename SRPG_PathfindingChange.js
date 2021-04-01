@@ -49,12 +49,12 @@
 
 
 	Game_Map.prototype.convertRoute = function(arr) {
-	    arr.forEach( function(a, b){
-		    switch (a) {
-		        case 2 :
+		arr.forEach( function(a, b){
+			switch (a) {
+				case 2 :
 					arr[b] = "Down";
 					break;
-		        case 4 :
+				case 4 :
 					arr[b] = "Left";
 					break;
 				case 6 : 	  
