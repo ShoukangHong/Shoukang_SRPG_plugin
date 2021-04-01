@@ -5,8 +5,8 @@
 //
 //=============================================================================
 /*:
- * @plugindesc This plugin modified the make move table function definition to provide 
- * a fire-emblem like move rule. (see help for detail)
+ * @plugindesc This plugin allows fly unit to ignore movecost and modified the make move  
+ * table function to provide a fire-emblem like move rule. (see help for detail)
  * @author Shoukang
  *
  * @help
