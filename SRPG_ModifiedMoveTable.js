@@ -30,26 +30,27 @@
 		$gameTemp.setMoveTable(x, y, move, [0]);
 		$gameTemp.pushMoveList([x, y, false]);
 		$gameMap.makeSrpgZoCTable(this.isType() == 'actor' ? 'enemy' : 'actor', this.throughZoC());
+
 		while (edges.length > 0) {
 			var cell = edges.shift();
 			for (var d = 2; d < 10; d += 2) {
 				if (!this.srpgMoveCanPass(cell[0], cell[1], d, tag)) continue;
-				    var dx = $gameMap.roundXWithDirection(cell[0], d);
-				    var dy = $gameMap.roundYWithDirection(cell[1], d);
-				    var movecost = 1;
+				var dx = $gameMap.roundXWithDirection(cell[0], d);
+				var dy = $gameMap.roundYWithDirection(cell[1], d);
+				var movecost = 1;
 				if(tag < $gameMap.terrainTag(dx, dy)){//shoukang edit: movecost cosiders units with srpgThroughTag
-                    movecost = $gameMap.srpgMoveCost(dx, dy);
+					movecost = $gameMap.srpgMoveCost(dx, dy);
 				}
 				if ($gameTemp.MoveTable(dx, dy)[0] >= 0 || (cell[2] - movecost) < 0) continue; //shoukang edit: if move < cost skip
-				    var dmove = cell[2] - movecost;
+					var dmove = cell[2] - movecost;
 					var route = cell[3].concat(d);			
-				    $gameTemp.setMoveTable(dx, dy, dmove, route);
-				    $gameTemp.pushMoveList([dx, dy, false]);
+					$gameTemp.setMoveTable(dx, dy, dmove, route);
+					$gameTemp.pushMoveList([dx, dy, false]);
 				if (dmove > 0 && !$gameMap._zocTable[dx+','+dy]) {
 					edges.push([dx, dy, dmove, route]);
 					edges.sort(function (a, b) {
 						return b[2] - a[2];
-			        });
+					});
 				}
 			}
 		}
