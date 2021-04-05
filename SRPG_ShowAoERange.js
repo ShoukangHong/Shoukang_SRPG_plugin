@@ -1,9 +1,6 @@
 //=============================================================================
 // SRPG_ShowAoERange.js
 //-----------------------------------------------------------------------------
-//This plugin changes the srpgMakeMoveTable function and the setThisMoveTile to show 
-//attack range of all available skills and AoEs in actor turn. Which makes it very 
-//convenient for players to recognize the real attack range.
 //Free to use and edit
 //=============================================================================
 /*:
