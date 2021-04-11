@@ -32,14 +32,14 @@
  * This plugin provides several note tags for you to create Aura skills. 
  * An Aura skill will add a state automatically to valid units in Aura range.
  * skill note tags:
- * <SRPGAuraState:x> this is the state of this Aura skill, replace x with state id.
+ * <SRPGAuraState:x>    This is the state of this Aura skill, replace x with state id.
  * <SRPGAuraTarget:xxx> This is the units that will be affected, xxx can be "friend" "foe" or "all" 
- * <SRPGAuraRange:x> The range of Aura, similar to AoE range.
- * <SRPGAuraShape:xxx> The shape of Aura, replace xxx with shapes defined in SRPR_AoE (Anisotropic shapes not supported)
+ * <SRPGAuraRange:x>    The range of Aura, similar to AoE range.
+ * <SRPGAuraShape:xxx>  The shape of Aura, replace xxx with shapes defined in SRPR_AoE (Anisotropic shapes not supported)
  * Please note: don't put any space after ":" in these note tags. And no need to add "".
  * 
  * state note tag:
- * <SRPGAura> With this notetag a state will be will be removed once a unit is out of the Aura.
+ * <SRPGAura>           With this notetag a state will be will be removed once a unit is out of the Aura.
  * If you want the Aura to be effective after a unit leaves the Aura range don't use this tag.(currently have some problems and I don't want to fix,
  * unless someone needs this. To fix it I will need to refresh states after action and after turn too.)
  * 
