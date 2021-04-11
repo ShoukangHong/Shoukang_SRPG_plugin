@@ -40,20 +40,19 @@
  * 
  * state note tag:
  * <SRPGAura>    With this notetag a state will be removed once a unit is out of the Aura.
- * If you want the Aura to be effective after a unit leaves the Aura range don't use this tag.(currently have some problems and I don't want to fix,
- * unless someone needs this. To fix it I will need to refresh states after action and after turn too.)
+ * If you want the Aura to be effective after a unit leaves the Aura range don't use this tag.
  * 
  * Aura skills are completely passive, you can set the skills as not useable.
- * Passive states of related units will be refreshed everytime you open the SRPGstatuswindow, ActorCommandStatusWindow, 
- * prediction window, menu window and before battle.
+ * Passive states of related units will be refreshed everytime you open the SRPGstatuswindow, 
+ * prediction window, menu window. It will also refresh when show movetable and before battle.
  * You can also assign Aura skills to enemies.
  * You may want to use some other plugins like ALOE_ItemSkillSortPriority to put a passive aura skill to the end of 
  * your skill list.
  * 
  * version 1.00 first release!
- * version 1.01 refresh status when open main menu.
+ * version 1.01 refresh status when open main menu. fix some bugs.
  *
- * This plugin needs SPPG_AoE to work.
+ * This plugin needs SPPG_AoE to work. Place this plugin below SRPG_ShowAoERange if you are using it.
  */
 (function () {
 	var parameters = PluginManager.parameters('SRPG_AuraSkill');
@@ -69,11 +68,11 @@
 		shoukang_SrpgStatus_refresh.call(this);
 	};
 
-	var shoukang_SrpgActorCommandStatus_refresh = Window_SrpgActorCommandStatus.prototype.refresh;//refresh aura when open SrpgActorCommandStatus window
-	Window_SrpgActorCommandStatus.prototype.refresh = function() {
-		if (this._battler) $gameTemp.refreshAura($gameTemp.activeEvent(), this._battler);
-		shoukang_SrpgActorCommandStatus_refresh.call(this);
-	};
+	var shoukang_Game_System_srpgMakeMoveTable = Game_System.prototype.srpgMakeMoveTable;
+	Game_System.prototype.srpgMakeMoveTable = function(event) {
+		$gameTemp.refreshAura(event, $gameSystem.EventToUnit(event.eventId())[1]);
+		shoukang_Game_System_srpgMakeMoveTable.call(this, event);
+	}
 
 	var shoukang_Scene_Map_eventBeforeBattle = Scene_Map.prototype.eventBeforeBattle;
 	Scene_Map.prototype.eventBeforeBattle = function() {
