@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_AuraSkill.js
 //-----------------------------------------------------------------------------
-// Free to use and edit
+// Free to use and edit   v1.01
 //=============================================================================
 /*:
  * @plugindesc This plugin allows you to create Aura skills for SRPG battle.
@@ -32,25 +32,26 @@
  * This plugin provides several note tags for you to create Aura skills. 
  * An Aura skill will add a state automatically to valid units in Aura range.
  * skill note tags:
- * <SRPGAuraState:x>    This is the state of this Aura skill, replace x with state id.
+ * <SRPGAuraState:x>    this is the state of this Aura skill, replace x with state id.
  * <SRPGAuraTarget:xxx> This is the units that will be affected, xxx can be "friend" "foe" or "all" 
  * <SRPGAuraRange:x>    The range of Aura, similar to AoE range.
  * <SRPGAuraShape:xxx>  The shape of Aura, replace xxx with shapes defined in SRPR_AoE (Anisotropic shapes not supported)
  * Please note: don't put any space after ":" in these note tags. And no need to add "".
  * 
  * state note tag:
- * <SRPGAura>           With this notetag a state will be will be removed once a unit is out of the Aura.
+ * <SRPGAura>    With this notetag a state will be removed once a unit is out of the Aura.
  * If you want the Aura to be effective after a unit leaves the Aura range don't use this tag.(currently have some problems and I don't want to fix,
  * unless someone needs this. To fix it I will need to refresh states after action and after turn too.)
  * 
  * Aura skills are completely passive, you can set the skills as not useable.
  * Passive states of related units will be refreshed everytime you open the SRPGstatuswindow, ActorCommandStatusWindow, 
- * prediction window and before battle. But it will not refresh when you open the "units" window. (because I'm lazy)
+ * prediction window, menu window and before battle.
  * You can also assign Aura skills to enemies.
  * You may want to use some other plugins like ALOE_ItemSkillSortPriority to put a passive aura skill to the end of 
  * your skill list.
  * 
  * version 1.00 first release!
+ * version 1.01 refresh status when open main menu.
  *
  * This plugin needs SPPG_AoE to work.
  */
@@ -74,11 +75,23 @@
 		shoukang_SrpgActorCommandStatus_refresh.call(this);
 	};
 
-	var shoukang_Scene_Map_eventBeforeBattle = Scene_Map.prototype.eventBeforeBattle
+	var shoukang_Scene_Map_eventBeforeBattle = Scene_Map.prototype.eventBeforeBattle;
 	Scene_Map.prototype.eventBeforeBattle = function() {
 		$gameTemp.refreshAura($gameTemp.activeEvent(), $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);
 		if ($gameTemp.targetEvent()) $gameTemp.refreshAura($gameTemp.targetEvent(), $gameSystem.EventToUnit($gameTemp.targetEvent().eventId())[1]);//refresh aura before battle
 		shoukang_Scene_Map_eventBeforeBattle.call(this);
+	};
+
+	var shoukang_Scene_Menu_createCommandWindow = Scene_Menu.prototype.createCommandWindow;
+	Scene_Menu.prototype.createCommandWindow = function() {
+		shoukang_Scene_Menu_createCommandWindow.call(this);
+		if ($gameSystem.isSRPGMode() == true) {
+			$gameMap.events().forEach(function (event){
+				if (event.isErased()) return;
+				var unit = $gameSystem.EventToUnit(event.eventId());
+				if (unit && unit[0] === 'actor') $gameTemp.refreshAura(event, unit[1]);
+			});
+		}
 	};
 
 	Game_Battler.prototype.clearAura = function() {
@@ -109,7 +122,7 @@
 						var shape = item.meta.SRPGAuraShape || _defaultShape;
 						var usertype = thisevent.isType();
 						if (!$gameMap.inArea(dx, dy, range, 0, shape, 0)) return;
-						if (type === 'friend' && unit[0] == thisevent.isType()){						
+						if (type === 'friend' && unit[0] == usertype){
 							user.addState(stateId);
 						} else if (type === 'foe' && unit[0] != usertype){
 							user.addState(stateId);
