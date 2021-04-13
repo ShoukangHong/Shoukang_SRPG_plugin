@@ -51,7 +51,7 @@
  * 
  * version 1.00 first release!
  * version 1.01 refresh status when open main menu. fix some bugs.
- * version 1.02 refresh status when turn end.
+ * version 1.02 refresh status when turn end, refresh only once for AoE skills.
  *
  * This plugin needs SPPG_AoE to work. Place this plugin below SRPG_ShowAoERange if you are using it.
  */
@@ -77,8 +77,15 @@
 
 	var shoukang_Scene_Map_eventBeforeBattle = Scene_Map.prototype.eventBeforeBattle;
 	Scene_Map.prototype.eventBeforeBattle = function() {
-		$gameTemp.refreshAura($gameTemp.activeEvent(), $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);
-		if ($gameTemp.targetEvent()) $gameTemp.refreshAura($gameTemp.targetEvent(), $gameSystem.EventToUnit($gameTemp.targetEvent().eventId())[1]);//refresh aura before battle
+		if ($gameTemp.shouldPayCost()){//this is used to avoid refreshing repeatedly when using AoE skills.
+			$gameTemp.refreshAura($gameTemp.activeEvent(), $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]);
+			if ($gameTemp.targetEvent()) $gameTemp.refreshAura($gameTemp.targetEvent(), $gameSystem.EventToUnit($gameTemp.targetEvent().eventId())[1]);//refresh aura before battle
+			if ($gameTemp.areaTargets().length > 0){
+				$gameTemp.areaTargets().forEach(function(target){
+					$gameTemp.refreshAura(target.event, $gameSystem.EventToUnit(target.event.eventId())[1]);
+				})
+			}
+		}
 		shoukang_Scene_Map_eventBeforeBattle.call(this);
 	};
 
