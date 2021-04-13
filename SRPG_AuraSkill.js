@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_AuraSkill.js
 //-----------------------------------------------------------------------------
-// Free to use and edit   v1.01
+// Free to use and edit   v1.02
 //=============================================================================
 /*:
  * @plugindesc This plugin allows you to create Aura skills for SRPG battle.
@@ -44,13 +44,14 @@
  * 
  * Aura skills are completely passive, you can set the skills as not useable.
  * Passive states of related units will be refreshed everytime you open the SRPGstatuswindow, 
- * prediction window, menu window. It will also refresh when show movetable and before battle.
+ * prediction window, menu window. It will also refresh when show movetable, before battle and turn end.
  * You can also assign Aura skills to enemies.
  * You may want to use some other plugins like ALOE_ItemSkillSortPriority to put a passive aura skill to the end of 
  * your skill list.
  * 
  * version 1.00 first release!
  * version 1.01 refresh status when open main menu. fix some bugs.
+ * version 1.02 refresh status when turn end.
  *
  * This plugin needs SPPG_AoE to work. Place this plugin below SRPG_ShowAoERange if you are using it.
  */
@@ -80,6 +81,16 @@
 		if ($gameTemp.targetEvent()) $gameTemp.refreshAura($gameTemp.targetEvent(), $gameSystem.EventToUnit($gameTemp.targetEvent().eventId())[1]);//refresh aura before battle
 		shoukang_Scene_Map_eventBeforeBattle.call(this);
 	};
+
+	var shoukang_Game_System_srpgTurnEnd = Game_System.prototype.srpgTurnEnd;
+	Game_System.prototype.srpgTurnEnd = function() {//shoukang turn end
+        $gameMap.events().forEach(function(event) {
+				if (event.isErased()) return;
+				var unit = $gameSystem.EventToUnit(event.eventId());
+				if (unit && (unit[0] === 'actor' || unit[0] === 'enemy')) $gameTemp.refreshAura(event, unit[1]);
+		});
+		shoukang_Game_System_srpgTurnEnd.call(this);
+    };
 
 	var shoukang_Scene_Menu_createCommandWindow = Scene_Menu.prototype.createCommandWindow;
 	Scene_Menu.prototype.createCommandWindow = function() {
