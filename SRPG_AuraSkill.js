@@ -186,13 +186,13 @@
 	};
 	
 	if (!Game_Enemy.prototype.skills) {
-	    Game_Enemy.prototype.skills = function() {
-	      var skills = []
-	      for (var i = 0; i < this.enemy().actions.length; ++i) {
-	        var skill = $dataSkills[this.enemy().actions[i].skillId];
-	        if (skill) skills.push(skill);
-	      }
-	      return skills;
-	    }
+		Game_Enemy.prototype.skills = function() {
+			var skills = []
+			for (var i = 0; i < this.enemy().actions.length; ++i) {
+				var skill = $dataSkills[this.enemy().actions[i].skillId];
+				if (skill) skills.push(skill);
+			}
+			return skills;
+		}
 	};
 })();
