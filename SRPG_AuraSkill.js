@@ -112,7 +112,7 @@
 			if ($gameTemp.areaTargets().length > 0){
 				$gameTemp.areaTargets().forEach(function(target){
 					$gameTemp.refreshAura(target.event);
-				})
+				});
 			}
 		}
 		shoukang_Scene_Map_eventBeforeBattle.call(this);
