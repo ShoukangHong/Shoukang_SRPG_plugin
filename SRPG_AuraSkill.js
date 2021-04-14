@@ -31,10 +31,9 @@
  * @help
  * This plugin provides several note tags for you to create Aura skills. 
  * An aura skill will add a state automatically to valid units in Aura range.
- *
  * Passive Aura skills can be created by skill notetags. It will assign the state to valid units within the Aura range.
  * skill note tags:
- * <SRPGAuraState:x>    this is the state this Aura skill will assign, replace x with state id.
+ * <SRPGAuraState:x>    this is the state of this Aura skill, replace x with state id.
  * <SRPGAuraTarget:xxx> This is the units that will be affected, xxx can be "friend" "foe" or "all" 
  * <SRPGAuraRange:x>    The range of Aura, similar to AoE range.
  * <SRPGAuraShape:xxx>  The shape of Aura, replace xxx with shapes defined in SRPR_AoE (Anisotropic shapes not supported)
@@ -163,10 +162,10 @@
 			var unit = $gameSystem.EventToUnit(event.eventId());
 			if (unit && (unit[0] === 'actor' || unit[0] === 'enemy')){
 				unit[1].skills().forEach( function(item){//check all skills
-					if ($gameTemp.isAuraStateValid(item, userevent.isType(), unit[0], dx, dy)) user.addState(parseInt(item.meta.SRPGAuraState));
+					if ($gameTemp.isAuraStateValid(item, userevent.isType(), unit[0], dx, dy)) user.addState(Number(item.meta.SRPGAuraState));
 				});
 				unit[1].states().forEach(function(item){//check all states
-					if ($gameTemp.isAuraStateValid(item, userevent.isType(), unit[0], dx, dy)) user.addState(parseInt(item.meta.SRPGAuraState));
+					if ($gameTemp.isAuraStateValid(item, userevent.isType(), unit[0], dx, dy)) user.addState(Number(item.meta.SRPGAuraState));
 				});
 			}
 		});
@@ -175,9 +174,9 @@
 	Game_Temp.prototype.isAuraStateValid = function(item, usertype, ownertype, dx, dy) {
 		if (item.meta.SRPGAuraState){
 			var type = item.meta.SRPGAuraTarget || _defaultTarget;
-			var range = item.meta.SRPGAuraRange || _defaultRange;
+			var range = Number(item.meta.SRPGAuraRange) || _defaultRange;
 			var shape = item.meta.SRPGAuraShape || _defaultShape;
-			var minrange = item.meta.SRPGAuraMinRange || 0;
+			var minrange = Number(item.meta.SRPGAuraMinRange) || 0;
 			if (!$gameMap.inArea(dx, dy, range, minrange, shape, 0)) return false;
 			if (type === 'friend' && ownertype == usertype) return true;
 			if (type === 'foe' && ownertype != usertype) return true;
