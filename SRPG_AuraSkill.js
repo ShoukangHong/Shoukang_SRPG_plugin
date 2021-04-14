@@ -43,12 +43,12 @@
  * Active aura skill can be created by state notetags. You can actively use a skill to gain an "Aura state", as long as this Aura state
  * exist it will assign a (different) state to the valid units within the Aura range. (Credits to Boomy)
  * This also allows you to activate aura effects in other ways(add this aura state by script calls, or whatever else)
- * state note tag:
+ * state note tags:
  * <SRPGAura>           With this notetag a state will be removed once a unit is out of the Aura.
  * If you want the Aura to be effective after a unit leaves the Aura range don't use this tag.
  *
  * <SRPGAuraState:x>    This is the state this "Aura state" will assign, replace x with state id.
- * <SRPGAuraTarget:xxx> These are the same as skill not tags.
+ * <SRPGAuraTarget:xxx> These are the same as skill note tags.
  * <SRPGAuraRange:x>    
  * <SRPGAuraShape:xxx>  
  * <SRPGAuraMinRange:x>
