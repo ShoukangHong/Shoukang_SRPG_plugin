@@ -34,11 +34,11 @@
  * Passive Aura skills can be created by skill notetags. It will assign the state to valid units within the Aura range.
  * skill note tags:
  * <SRPGAuraState:x>    this is the state of this Aura skill, replace x with state id.
- * <SRPGAuraTarget:xxx> This is the units that will be affected, xxx can be "friend" "foe" or "all" 
+ * <SRPGAuraTarget:xxx> This is the units that will be affected, xxx can be "friend" "foe" or "all" (no need to add "")
  * <SRPGAuraRange:x>    The range of Aura, similar to AoE range.
  * <SRPGAuraShape:xxx>  The shape of Aura, replace xxx with shapes defined in SRPR_AoE (Anisotropic shapes not supported)
  * <SRPGAuraMinRange:x> The minumum range of Aura, creats a hole. Default is 0.
- * Please note: don't put any space after ":" in these note tags. And no need to add "". You also need to use state note tag <SRPGAura> (see below).
+ * You may also want to use state note tag <SRPGAura> (see below).
  * 
  * Active aura skill can be created by state notetags. You can actively use a skill to gain an "Aura state", as long as this Aura state
  * exist it will assign a (different) state to the valid units within the Aura range. (Credits to Boomy)
