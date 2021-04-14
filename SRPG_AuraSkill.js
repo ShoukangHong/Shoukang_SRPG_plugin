@@ -84,7 +84,7 @@
 
 	var shoukang_Game_System_srpgMakeMoveTable = Game_System.prototype.srpgMakeMoveTable;
 	Game_System.prototype.srpgMakeMoveTable = function(event) {
-		$gameTemp.refreshAura(event, $gameSystem.EventToUnit(event.eventId())[1]);
+		$gameTemp.refreshAura(event);
 		shoukang_Game_System_srpgMakeMoveTable.call(this, event);
 	}
 
