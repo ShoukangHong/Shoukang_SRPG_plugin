@@ -31,9 +31,10 @@
  * @help
  * This plugin provides several note tags for you to create Aura skills. 
  * An aura skill will add a state automatically to valid units in Aura range.
+ *
  * Passive Aura skills can be created by skill notetags. It will assign the state to valid units within the Aura range.
  * skill note tags:
- * <SRPGAuraState:x>    this is the state of this Aura skill, replace x with state id.
+ * <SRPGAuraState:x>    this is the state this Aura skill will assign, replace x with state id.
  * <SRPGAuraTarget:xxx> This is the units that will be affected, xxx can be "friend" "foe" or "all" 
  * <SRPGAuraRange:x>    The range of Aura, similar to AoE range.
  * <SRPGAuraShape:xxx>  The shape of Aura, replace xxx with shapes defined in SRPR_AoE (Anisotropic shapes not supported)
