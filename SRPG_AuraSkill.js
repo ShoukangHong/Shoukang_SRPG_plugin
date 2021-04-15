@@ -218,8 +218,6 @@
 
 	Game_Temp.prototype.makeAuraList = function(userevent) {
 		var unit = $gameSystem.EventToUnit(userevent.eventId());
-
-
 		var orix = userevent.posX()
 		var oriy = userevent.posY()
 		var route = userevent._srpgForceRoute;//this is used to refresh Aura when opening SrpgActorCommand;
