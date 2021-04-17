@@ -62,7 +62,7 @@
  * If you want the Aura to be effective after a unit leaves the Aura range don't use this tag.
  *
  * event note tag:
- * <SRPGAuraPage:x>     On which event page is the aura active. If don't write the aura is always active (unless it's erased).
+ * <SRPGAuraPage:x>     On which event page is the aura active. If don't write the aura is always active (unless it's erased).The first page is 0, 2nd page is 1, etc.
  *
  * Aura states of related units will be refreshed everytime you open the SRPGstatuswindow, 
  * prediction window, menu window. It will also refresh when show movetable, before battle, after action, battle start and turn end.
