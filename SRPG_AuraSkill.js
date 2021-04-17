@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_AuraSkill.js
 //-----------------------------------------------------------------------------
-// Free to use and edit   v1.05 Now Unitevent can have Aura effect!
+// Free to use and edit   v1.05 Now Unitevent/object can have Aura effect!
 //=============================================================================
 /*:
  * @plugindesc This plugin allows you to create Aura skills for SRPG battle. Place it below all SRPG plugins for best compatibility.
@@ -45,11 +45,11 @@
  * Active aura skills can be created by state notetags. You can actively use a skill to gain an "Aura state", as long as this Aura state
  * exist it will assign a (different) state to the valid units within the Aura range. (Credits to Boomy)
  * This also allows you to activate aura effects in other ways(add this aura state by script calls, or whatever else)
- * Now Events with <type:unitEvent> can also have passive Aura.
+ * Now Events with <type:unitEvent> <type:object> can also have passive Aura.
  * =========================================================================================================================
  * skill/event/state note tags:
  * <SRPGAuraState:x>    this is the state this skill/event/state will assign (to valid units), replace x with state id.
- * <SRPGAuraTarget:xxx> This is the units that will be affected, xxx can be "friend" "foe" or "all". For unitevent, friend is actor and foe is enemy.(no need to add quote)
+ * <SRPGAuraTarget:xxx> This is the units that will be affected, xxx can be "friend" "foe" or "all". For unitevent/object, friend is actor and foe is enemy.(no need to add quote)
  * <SRPGAuraRange:x>    The range of Aura, similar to AoE range.
  * <SRPGAuraShape:xxx>  The shape of Aura, replace xxx with shapes defined in SRPR_AoE (Anisotropic shapes not supported)
  * <SRPGAuraMinRange:x> The minumum range of Aura, creats a hole. Default is 0.
@@ -70,7 +70,7 @@
  * You may want to use some other plugins like ALOE_ItemSkillSortPriority to put a passive aura skill to the end of 
  * your skill list.
  * ==========================================================================================================================
- * version 1.05 support aura for unitevents!
+ * version 1.05 support aura for unitevents and objects!
  * version 1.04 show aura range on movetable!
  * version 1.03 add state note tags for active aura skills. Fix issues of states without <SRPGAura>
  * version 1.02 refresh status when turn end.
@@ -195,7 +195,7 @@
 				unit[1].states().forEach(function(item){//check all states
 					if ($gameTemp.isAuraStateValid(item, userevent.isType(), unit[0], dx, dy)) user.addState(Number(item.meta.SRPGAuraState));
 				});
-			} else if (event.isType() === 'unitEvent'){
+			} else if (event.isType() === 'unitEvent' || event.isType() === 'object'){
 				var item = event.event()
 				if (item.meta.SRPGAuraPage && Number(item.meta.SRPGAuraPage) != event.pageIndex()) return;
 				if ($gameTemp.isAuraStateValid(item, userevent.isType(), 'actor', dx, dy)) user.addState(Number(item.meta.SRPGAuraState));
