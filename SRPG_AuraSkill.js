@@ -262,7 +262,7 @@
 				this._MoveList.splice(i, 1);
 			}
 		}
-        $gameTemp.setResetMoveList(true);
+		$gameTemp.setResetMoveList(true);
 		this.makeAuraList($gameTemp.activeEvent());
 	};
 
@@ -277,9 +277,9 @@
 
 	var shoukang_Sprite_SrpgMoveTile_initialize = Sprite_SrpgMoveTile.prototype.initialize;
 	Sprite_SrpgMoveTile.prototype.initialize = function() {
-        shoukang_Sprite_SrpgMoveTile_initialize.call(this);
-        this.aura = false;
-    };
+		shoukang_Sprite_SrpgMoveTile_initialize.call(this);
+		this.aura = false;
+	};
 
 	var shoukang_Sprite_SrpgMoveTile_clearThisMoveTile = Sprite_SrpgMoveTile.prototype.clearThisMoveTile;
 	Sprite_SrpgMoveTile.prototype.clearThisMoveTile = function() {
@@ -287,12 +287,12 @@
 		this.aura = false;
 	}
 
-    Sprite_SrpgMoveTile.prototype.updateAnimation = function() {
+	Sprite_SrpgMoveTile.prototype.updateAnimation = function() {
 		this._frameCount++;
 		this._frameCount %= 90;
 		if (!this.aura) this.opacity = 210 - Math.abs(this._frameCount - 45) * 2;
 		else this.opacity = Math.abs(this._frameCount - 45) * 5 - 90;
-    };
+	};
 
 	if (!Game_Enemy.prototype.skills) {
 		Game_Enemy.prototype.skills = function() {
