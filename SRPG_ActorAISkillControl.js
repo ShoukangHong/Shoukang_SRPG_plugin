@@ -4,8 +4,7 @@
 // free to use and edit
 //=============================================================================
 /*:
- * @plugindesc The default SRPG actor AI select available skills randomly,
- * This plugin allows Actor AI units to select skills like enemy units.
+ * @plugindesc SRPG_AIControl provides target selection method with a given skill, but actor's skill is picked randomly.This plugin gives you control on actor skill selection.
  * @author Shoukang
  *
  * @help
