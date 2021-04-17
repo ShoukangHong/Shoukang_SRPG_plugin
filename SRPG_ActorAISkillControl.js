@@ -62,7 +62,7 @@
 				var a = this;
 				var topPriority = - 100;
 				var list = this.makeActionList().filter(function(item){
-					if (item.item().meta.AISkillCondition){
+					if (item.item().meta.AISkillCondition){//check Ai skill condition
 						var s = $gameSwitches._data;
 						var v = $gameVariables._data;
 						if (eval(item.AISkillCondition()) === false){
@@ -79,8 +79,8 @@
 			}
 			this.setActionState('waiting');
 		} else {
-            return _SRPG_Game_Actor_makeAutoBattleActions.call(this);
-        }
+			return _SRPG_Game_Actor_makeAutoBattleActions.call(this);
+		}
 	};
 
 	Game_Actor.prototype.selectAction = function(actionList, ratingZero) {
