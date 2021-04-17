@@ -30,6 +30,7 @@
  * a.hp < a.mhp
  * </AISkillCondition>
  *==========================================================================================================================
+ * v 1.00 first release!
  * Future plan: check actor notetages and class notetags. 
  * Enable target condition check in formula.(This is hard though, because this stage is before move, target can be anyone in range)
  * =========================================================================================================================
