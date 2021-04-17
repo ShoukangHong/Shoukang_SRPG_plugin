@@ -14,10 +14,10 @@
  * skill list. This plugin allows you to set skill priority and conditions for Actors in SRPG mode.
  * The difference of priority between a skill and the highest priority skill will affect the possibility of using
  * a skill. if difference >= 3, 0 possibility. if difference = 1, 1/3 possibility, if difference = 2, 
- * 2/3 possibility(compared to the highest priority skill, it's the same as the enemy skill's setting).
+ * 2/3 possibility(compared to the highest priority skill, it's the same as the enemy skill's rating).
  *
  * skill notetags:
- * <AIpriority:x> x is the priority of the skill. If don't write this a skill's priority is 5. This number can be negative or positive.
+ * <AIpriority:x> x is the priority(rating) of the skill. If don't write this a skill's priority is 5. This number can be negative or positive.
  * <AISkillCondition>    Only use this skill when it meets condition. If don't write this a skill always meets condition.
  * code                  The code will be put in if (...) brackets.
  * </AISkillCondition> 
