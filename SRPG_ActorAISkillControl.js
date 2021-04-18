@@ -56,13 +56,14 @@
 		return false;
 	};
 
+	var  shoukang_Game_Actor_makeAutoBattleActions = Game_Actor.prototype.makeAutoBattleActions;
 	Game_Actor.prototype.makeAutoBattleActions = function() {
 		if ($gameSystem.isSRPGMode() == true) {
 			for (var i = 0; i < this.numActions(); i++) {
 				var a = this;
 				var topPriority = - 100;
 				var list = this.makeActionList().filter(function(item){
-					if (item.item().meta.AISkillCondition){//check Ai skill condition
+					if (item.item().meta.AISkillCondition){
 						var s = $gameSwitches._data;
 						var v = $gameVariables._data;
 						if (eval(item.AISkillCondition()) === false){
@@ -79,13 +80,13 @@
 			}
 			this.setActionState('waiting');
 		} else {
-			return _SRPG_Game_Actor_makeAutoBattleActions.call(this);
+			return shoukang_Game_Actor_makeAutoBattleActions.call(this);
 		}
 	};
 
 	Game_Actor.prototype.selectAction = function(actionList, ratingZero) {
 	    var sum = actionList.reduce(function(r, item) {
-	        return r + item.AIpriority() - ratingZero;
+		return r + item.AIpriority() - ratingZero;
 	    }, 0);
 
 	    if (sum > 0) {
