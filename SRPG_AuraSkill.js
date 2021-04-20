@@ -41,14 +41,14 @@
  * @help
  * This plugin provides several note tags for you to create Aura skills. 
  * An aura skill will add a state automatically to valid units in Aura range.
- * Passive Aura skills can be created by skill notetags. It will assign the state to valid units within the Aura range.
+ * Passive Aura skills can be created by skill notetags. It will assign the (sub)state to valid units within the Aura range.
  * Active aura skills can be created by state notetags. You can actively use a skill to gain an "Aura state", as long as this Aura state
- * exist it will assign a (different) state to the valid units within the Aura range. (Credits to Boomy)
+ * exist it will assign a (sub)state to the valid units within the Aura range. (Credits to Boomy)
  * This also allows you to activate aura effects in other ways(add this aura state by script calls, or whatever else)
  * Now Events with <type:unitEvent> <type:object> can also have passive Aura.
  * =========================================================================================================================
  * skill/event/state note tags:
- * <SRPGAuraState:x>    this is the state this skill/event/state will assign (to valid units), replace x with state id.
+ * <SRPGAuraState:x>    this is the (sub)state this skill/event/state will assign (to valid units), replace x with (sub)state id.
  * <SRPGAuraTarget:xxx> This is the units that will be affected, xxx can be "friend" "foe" or "all". For unitevent/object, friend is actor and foe is enemy.(no need to add quote)
  * <SRPGAuraRange:x>    The range of Aura, similar to AoE range.
  * <SRPGAuraShape:xxx>  The shape of Aura, replace xxx with shapes defined in SRPR_AoE (Anisotropic shapes not supported)
@@ -58,7 +58,7 @@
  * You may also want to use state note tag <SRPGAura> (see below).
  * 
  * state note tag:
- * <SRPGAura>           With this notetag a state will be removed once a unit is out of the Aura.
+ * <SRPGAura>           With this notetag a state will be removed once a unit is out of the Aura. Give this notetag to the (sub)state.
  * If you want the Aura to be effective after a unit leaves the Aura range don't use this tag.
  *
  * event note tag:
