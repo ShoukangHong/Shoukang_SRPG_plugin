@@ -13,7 +13,7 @@
  * @default false
  *
  * @param textPrepareEvent
- * @desc Name of PrepareEvent. Used in SRPG menu window.
+ * @desc Name of Prepare Event. Used in SRPG menu window.
  * @default Prepare
  *
  * @param textFinishPrepare
@@ -21,11 +21,11 @@
  * @default Ready
  *
  * @param textExchange
- * @desc Name of Finish Prepare. Used in SRPG menu window.
+ * @desc Name of Exchange position. Used in SRPG menu window.
  * @default Exchange
  *
  * @param textRemove
- * @desc Name of Finish Prepare. Used in SRPG menu window.
+ * @desc Name of Remove actor. Used in SRPG menu window.
  * @default Remove
  *
  * @help
@@ -93,7 +93,7 @@
 					} else if (event.isType() === 'playerEvent') {
 						if (event.pageIndex() >= 0) event.start();
 						return;
-					} else if (event.isType() === 'actor' && event.isErased() && $gameParty.remainingActorList().length > 0){ //if there's remaining actor add actor.
+					} else if (event.event().meta.type === 'actor' && event.isErased() && $gameParty.remainingActorList().length > 0){ //if there's remaining actor add actor.
 						SoundManager.playOk();
 						var actorId = $gameParty.remainingActorList()[0];
 						var oldValue = $gameVariables.value(_existActorVarID);
@@ -104,10 +104,10 @@
 				});
 			} else if ($gameSystem.isSubBattlePhase() === 'exchange_position' && triggers[0] === 0){
 				$gameMap.eventsXy(x, y).forEach(function(event) {
-					if (event.isType() === 'actor') {
+					if (event.event().meta.type === 'actor') {
 						if (Number(event.event().meta.id) === 0 && event.eventId() !== $gameTemp.activeEvent().eventId()) {
 							var battlerArray = $gameSystem.EventToUnit(event.eventId());
-							if (battlerArray[1] && battlerArray[1].isAutoBattle()){
+							if (battlerArray && battlerArray[1] && battlerArray[1].isAutoBattle()){
 								SoundManager.playBuzzer();
 							} else{
 								SoundManager.playOk();
@@ -412,7 +412,7 @@
 		$gameTemp.clearActiveEvent();
 		$gameMap.event(id).erase();
 		$gameSystem._EventToUnit[id] = null;
-//		$gameSystem.setEventToUnit(id, 'null', null); 
+		$gameMap.event(id).setType('');
 		$gameSystem.clearSrpgPrepareWindowNeedRefresh();
 		$gameSystem.setSubBattlePhase('normal');
 	};
@@ -469,7 +469,7 @@
 //make the table of operatable actor tiles.
 	Game_System.prototype.srpgMakePrepareTable = function() {
 		$gameMap.events().forEach(function(event) {
-			if (event.isType() === 'actor' && Number(event.event().meta.id) === 0){
+			if (event.event().meta.type === 'actor' && Number(event.event().meta.id) === 0){
 				var battlerArray = $gameSystem.EventToUnit(event.eventId());
 				if (battlerArray && battlerArray[1] && battlerArray[1].isAutoBattle()) return;
 				$gameTemp.pushMoveList([event.posX(), event.posY(), false]);    
