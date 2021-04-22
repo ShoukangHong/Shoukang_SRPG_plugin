@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_BattlePrepare.js
 //-----------------------------------------------------------------------------
-// free to use and edit
+// free to use and edit     v1.01 fixed some small bugs and changed the parameter description
 //=============================================================================
 /*:
  * @plugindesc Add battle Prepare phase at the beginning of SRPG battle.
@@ -43,6 +43,7 @@
  * DisableSRPGPrepare       Disable battle Prepare
  * EnableSRPGPrepare        Enable battle Prepare
  *==========================================================================================================================
+ * v1.01 fixed some small bugs and changed the parameter description.
  * v 1.00 first release!
  * =========================================================================================================================
  * Compatibility:
