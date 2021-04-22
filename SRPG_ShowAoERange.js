@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_ShowAoERange.js
 //-----------------------------------------------------------------------------
-//Free to use and edit
+//Free to use and edit v.101
 //=============================================================================
 /*:
  * @plugindesc The original attack range only shows the enemy/actor's default skill range.
@@ -28,7 +28,12 @@
  * will be colored differently.
  * Although SRPG doesn't need you to add default skill "attack"(Id:1), please add this skill to your       
  * actors(unless your actor can't use default attack) to allow this plugin to show its skill range.
- *
+ * ====================================================================================================
+ * To do: add range of default srpg attack skill.
+ * v 1.01 now it will check skill stype, seal, etc.
+ * v 1.00 first release!
+ * ====================================================================================================
+ * Compatibility:
  * Please put this plugin below SRPG_RangeControl.
  */
 (function () {
@@ -48,11 +53,14 @@
 			$gameTemp.clearMoveTable();
 			event.makeMoveTable(event.posX(), event.posY(), user.srpgMove(), null, user.srpgThroughTag());
 			user.skills().forEach(function(item){//all skills
+				if (event.isType() === 'actor'){
+					if (!user.addedSkillTypes().includes(item.stypeId) && item.stypeId !== 0) return;
+				}
+				if (!(user.canPaySkillCost(item) && user.isSkillWtypeOk(item) && !user.isSkillSealed(item.id) && !user.isSkillTypeSealed(item.stypeId))) return;//if not useable don't show
 				range = user.srpgSkillRange(item);
 				var areaRange = 0;
 				var minRange = null;
 				var shape = null;
-				if (user.tp < item.tpCost || user.mp < item.mpCost) return;//if not useable don't show, actually need to check skill stype(and cool down if using yep plugins) too.
 				if (item.meta.srpgAreaRange) {//check if it's an AoE skill
 					areaRange = Number(item.meta.srpgAreaRange);
 					minRange = Number(item.meta.srpgAreaMinRange) || 0;
