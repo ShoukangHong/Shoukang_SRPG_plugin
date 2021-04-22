@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_ShowAoERange.js
 //-----------------------------------------------------------------------------
-//Free to use and edit v.101
+//Free to use and edit    v.101 support battleprepare plugin, check skill stype and seal
 //=============================================================================
 /*:
  * @plugindesc The original attack range only shows the enemy/actor's default skill range.
@@ -44,7 +44,7 @@
 //In actor phase, show range and AoE range of all skills
 	var _shoukangsrpgMakeMoveTable = Game_System.prototype.srpgMakeMoveTable;
 	Game_System.prototype.srpgMakeMoveTable = function(event) {
-		if (!$gameMap.isEventRunning() && $gameSystem.isBattlePhase() === 'actor_phase' && $gameSystem.isSubBattlePhase() === 'normal'){
+		if (!$gameMap.isEventRunning() && ($gameSystem.isBattlePhase() === 'actor_phase' && $gameSystem.isSubBattlePhase() === 'normal' || $gameSystem.isBattlePhase() === 'battle_prepare')){
 			var user = $gameSystem.EventToUnit(event.eventId())[1];
 			var item = null;
 			var x = event.posX();
