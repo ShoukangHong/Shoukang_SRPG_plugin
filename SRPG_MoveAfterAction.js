@@ -30,7 +30,6 @@
 
 	Game_BattlerBase.prototype.isSrpgAfterActionMove = function() {
 		if (this.SRPGActionTimes() <= 1) return this._isSrpgAfterActionMove;//in case someone use add action time skills
-		this.setSrpgAfterActionMove(false);
 		return false;
 	};
 
@@ -83,12 +82,13 @@
 		var oriX = $gameTemp.activeEvent().posX();
 		var oriY = $gameTemp.activeEvent().posY();
 		shoukang_Scene_Map_srpgAfterAction.call(this);
-		if (currentBattler.srpgTurnEnd() && !currentBattler.isSrpgAfterActionMove() && currentBattler.SrpgRemainingMove()){
+		if (currentBattler.srpgTurnEnd() && !currentBattler.isSrpgAfterActionMove() && 
+			currentBattler.SrpgRemainingMove() && !$gameTemp.isTurnEndFlag()){
 			currentBattler.setSrpgAfterActionMove(true);
 			currentBattler.setSrpgTurnEnd(false);
 			$gameTemp.setAutoMoveDestinationValid(true);
 			$gameTemp.setAutoMoveDestination(oriX, oriY);
-		}
+		} else if ($gameTemp.isTurnEndFlag()) currentBattler.setSrpgRemainingMove(0);
 	};
 
 	var shoukang_Scene_Map_isSrpgActorTurnEnd = Scene_Map.prototype.isSrpgActorTurnEnd;
