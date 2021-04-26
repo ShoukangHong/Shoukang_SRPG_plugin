@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_MoveAfterAction.js
 //-----------------------------------------------------------------------------
-// Free to use and edit   v1.00 first Release!
+// Free to use and edit   v1.01 enable state notetags
 //=============================================================================
 /*:
  * @plugindesc 
@@ -9,10 +9,11 @@
  * @author Shoukang
  *
  * @help
- * actor/class/weapon/armor note tag:
+ * actor/class/weapon/armor/state note tag:
  * <MoveAfterAction>    with this note tag the actor can move again when it has remaining move.
  * Enemy units and auto battle actors can not move after action, because they don't know how to use it.
  * ==========================================================================================================================
+ * version 1.01 enable state notetags
  * version 1.00 first release!
  * ===========================================================================================================================
  * Compatibility:
@@ -67,6 +68,10 @@
 		for (var i = 0; i < equipments.length; i++){
 			if (equipments[i] && equipments[i].meta.MoveAfterAction) return true;
 		} 
+		var states = this.states();
+		for (var i = 0; i < states.length; i++){
+		    if (states[i] && states[i].meta.MoveAfterAction) return true;
+		}
 		return false;
 	};
 
