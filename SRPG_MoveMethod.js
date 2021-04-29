@@ -54,7 +54,7 @@
  *   <mode:nearestUnitEvent> # move to the nearest unit event.
  *   <mode:mostFriends>    # move to the 'center' of friend units. May wander if they are too spread out. See the code for more info.
  *   <mode:mostOpponents>  # move to the 'center' of friend units. May wander if they are too spread out. See the code for more info.
- *   <mode:nearestFlag['type']>  # move to the nearest event with <aiFlag:type>, or event with this type(object, enemy, unitevent, etc.).
+ *   <mode:nearestFlag['type']># move to the nearest event with <aiFlag:type>, or event with this type(object, enemy, unitevent, etc.).
  *   <mode:mostFlags['type']>  # move to the 'center' of events with <aiFlag:type>, or events with this type(object, enemy, unitevent, etc.).
  *                             # You can add more than one type, for example: <mode:nearestFlag['customizedType', 'unitevent', 'actor']>
  * =============================================================================================================================
