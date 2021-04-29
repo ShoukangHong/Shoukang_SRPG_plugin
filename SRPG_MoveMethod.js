@@ -135,24 +135,20 @@
 //==========================================================================================================
 // method to check and set avoide damage floor
 //==========================================================================================================
-	var _SRPG_Game_Battler_initMembers = Game_Battler.prototype.initMembers;
-	Game_Battler.prototype.initMembers = function() {
-		_SRPG_Game_Battler_initMembers.call(this);
-		this._avoidDamageFloor = undefined;
-	};
+    var _SRPG_Game_Event_initMembers = Game_Event.prototype.initMembers;
+    Game_Event.prototype.initMembers = function() {
+        _SRPG_Game_Event_initMembers.call(this);
+        this._avoidDamageFloor = undefined;
+    };
 
-	Game_Battler.prototype.isAvoidDamageFloor = function() {
-		return this._avoidDamageFloor;
-	};
-
-	Game_Battler.prototype.setAvoidDamageFloor = function(val) {
+	Game_Event.prototype.setAvoidDamageFloor = function(val) {
 		this._avoidDamageFloor = val;
 	};
 
-	Game_Event.prototype.avoidDamageFloor = function() {
+	Game_Event.prototype.isAvoidDamageFloor = function() {
+		if (this._avoidDamageFloor !== undefined) return this._avoidDamageFloor;
 		var user = $gameSystem.EventToUnit(this.eventId())[1];
 		var result = false;
-		if (user.isAvoidDamageFloor() !== undefined) return user.isAvoidDamageFloor();
 		if (this.event().meta.avoidDamageFloor) {
 			result = eval(this.event().meta.avoidDamageFloor);
 		} else if (user.isActor() && user.currentClass().meta.avoidDamageFloor) {
@@ -162,7 +158,7 @@
 		} else if (user.isEnemy() && user.enemy().meta.avoidDamageFloor) {
 			result = eval(user.enemy().meta.avoidDamageFloor);
 		} else result = false;
-		user.setAvoidDamageFloor(result);
+		this.setAvoidDamageFloor(result);
 		return result;
 	};
 
@@ -238,7 +234,7 @@
 		var typeArray = [];
 		var battleMode = user.battleMode();
 		var targetEvent = $gameTemp.isSrpgPriorityTarget();
-		var validMoveList = $gameTemp.validMoveList(event.avoidDamageFloor()); //get all valid move positions from movelist;
+		var validMoveList = $gameTemp.validMoveList(event.isAvoidDamageFloor()); //get all valid move positions from movelist;
 
 		// all move mode conditions
 		if (targetEvent && targetEvent.isTargetValid()){
@@ -587,3 +583,4 @@
 	};
 
 })();
+
