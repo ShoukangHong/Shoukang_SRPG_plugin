@@ -25,7 +25,6 @@
  * @default true
  *
  * @help
- * =============================================================================================================================
  * This plugin provides more move modes, improved pathfinding that can find the route in all conditions(it grabs data directly from movetable),
  * and easy way to make extensions.
  * It supports all move modes from SRPG_Core and provides new ones.
