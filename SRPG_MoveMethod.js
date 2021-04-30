@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_MoveMethod.js
 //-----------------------------------------------------------------------------
-// Free to use and edit   v1.00 first Release!
+// Free to use and edit   v1.01 add new 'avoid' mode and 'keepdistance' aiMove
 //=============================================================================
 /*:
  * @plugindesc More move modes and improved pathfinding that can handle all conditions!
@@ -48,12 +48,17 @@
  * New event note tags for move mode (some of them are based on SRPG_AIControl's move formulas):
  *   <mode:random>         # move randomly.
  *   <mode:region x>       # move to nearest tile with region x.
- *   <mode:position x y>   # move to map position [x, y].
+ *   <mode:position x y>   # move to map position [x, y].   
+ *   <mode:absPosition x y># with abs: regardless of nearbt enemy.
  *   <mode:nearestFriend>  # move to the nearest friend.
  *   <mode:nearestOpponent># move to the nearest opponent.
  *   <mode:nearestUnitEvent> # move to the nearest unit event.
  *   <mode:mostFriends>    # move to the 'center' of friend units. May wander if they are too spread out. See the code for more info.
  *   <mode:mostOpponents>  # move to the 'center' of friend units. May wander if they are too spread out. See the code for more info.
+ *   <mode:avoidOpponents> # move away from the opponents, the distance is mesuared by direct distance, not route distance.
+ *   <mode:absAvoidOpponents>  # with abs: regardless of nearby enemy.
+ *   <mode:avoidFlags['type']> # move away from the events with <aiFlag:type>, or events with this type(object, enemy, unitevent, etc.). The distance is direct distance.
+ *   <mode:absAvoidFlags['type']> # with abs: regardless of nearby enemy.
  *   <mode:nearestFlag['type']># move to the nearest event with <aiFlag:type>, or event with this type(object, enemy, unitevent, etc.).
  *   <mode:mostFlags['type']>  # move to the 'center' of events with <aiFlag:type>, or events with this type(object, enemy, unitevent, etc.).
  *                             # You can add more than one type, for example: <mode:nearestFlag['customizedType', 'unitevent', 'actor']>
@@ -77,6 +82,7 @@
  *   <aiMove:'escape'>           # regardless of nearby enemy, move to most friends. See 'isSkipAttackMode' for detail.
  *   <aiMove:'timid'>            # mode is 'nearestOpponent' when hprate > 0.8, else mode is 'escape'
  *   <aiMove:'patrolRegion x y'> # if unit is at region x, mode becomes 'region y'. If unit is at region y, mode becomes 'region x'.
+ *   <aiMove:'keepDist x'>       # function is absAvoidOpponents only when it can keep distance above x, or mode will be 'nearestOpponent'.
  * =============================================================================================================================
  * SkipAttackModes:
  * With this plugin, before a unit search for targets, it will first check if the mode needs to skip target searching(attack) and use move mode. 
@@ -91,6 +97,7 @@
  * so that reachable positions are always shorter than unreachable ones.
  * To extend more modes, use 'battleModeExtension' function.
  * =============================================================================================================================
+ * version 1.01 add new 'avoid' mode and 'keepdistance' aiMove
  * version 1.00 first release!
  * =============================================================================================================================
  * Compatibility:
@@ -170,6 +177,7 @@
 		var user = $gameSystem.EventToUnit(event.eventId())[1];
 		if (!event || !user) return false;
 
+		//get validMoveList to check first.
 		// set aiMoveMode
 		var aiMoveMode = event.aiMove();
 		if (aiMoveMode){
@@ -257,17 +265,23 @@
 			bestXY = $gameTemp.mostPositionXY(validMoveList, typeArray, event.posX(), event.posY());
 		} else if (battleMode === 'mostFriends') {
 			bestXY = $gameTemp.mostPositionXY(validMoveList, [event.isType()], event.posX(), event.posY());
-		} else if (battleMode.match(/\s*mostFlags(.+)/)) {//<mode:mostFlags['xxxx']>
-			typeArray = eval(battleMode.match(/\s*mostFlags(.+)/)[1]);
+		} else if (battleMode.match(/\s*mostFlags(.+)/i)) {//<mode:mostFlags['xxxx']>
+			typeArray = eval(battleMode.match(/\s*mostFlags(.+)/i)[1]);
 			bestXY = $gameTemp.mostPositionXY(validMoveList, typeArray, event.posX(), event.posY());
-		}else if (battleMode === 'regionUp' || battleMode === 'absRegionUp'){
+		} else if (battleMode.match(/avoidOpponents/i)){//<mode:avoidOpponents> <mode:absAvoidOpponents>
+			typeArray = [(event.isType() === 'actor' ? 'enemy':'actor')];
+			bestXY = $gameTemp.avoidTargetXY(validMoveList, typeArray);
+		} else if (battleMode.match(/\s*avoidFlags(.+)/i)){//<mode:avoidFlags['xxxx']>
+			typeArray = eval(battleMode.match(/\s*avoidFlags(.+)/i)[1]);
+			bestXY = $gameTemp.avoidTargetXY(validMoveList, typeArray);
+		} else if (battleMode === 'regionUp' || battleMode === 'absRegionUp'){
 			bestXY = $gameTemp.bestRegionXY(validMoveList, 1);
 		} else if (battleMode === 'regionDown' || battleMode === 'absRegionDown'){
 			bestXY = $gameTemp.bestRegionXY(validMoveList, - 1);
 		} else if (battleMode.match(/\s*region\s+(\d+)/i)){ //<mode:region x>
 			var regionId = Number(battleMode.match(/\s*region\s+(\d+)/i)[1]);
 			bestXY = $gameTemp.certainRegionXY(validMoveList, regionId, event.posX(), event.posY());
-		} else if (battleMode.match(/\s*position\s+(\d+)\s+(\d+)/i)){ //<mode:position x y>
+		} else if (battleMode.match(/\s*position\s+(\d+)\s+(\d+)/i)){ //<mode:position x y>, <mode:absPosition x y>
 			var posX = Number(battleMode.match(/\s*position\s+(\d+)\s+(\d+)/i)[1]);
 			var posY = Number(battleMode.match(/\s*position\s+(\d+)\s+(\d+)/i)[2]);
 			var distRouteXY = $gameTemp.distRouteXY(posX, posY, event.posX(), event.posX(), true);
@@ -352,6 +366,16 @@
 			else if (currentRegion === region2) return 'region ' + region1;
 			else if (a.battleMode() === 'normal') return 'region ' + region1;
 			else return a.battleMode();
+		} else if (meta.match(/keepDist\s+(\d+)/i)){//<aiMove:'keepDist x'>
+			atkDist = meta.match(/keepDist\s+(\d+)/i)[1];
+			this.makeMoveTable(this.posX(), this.posY(), a.srpgMove(), [0], a.srpgThroughTag());
+			var validMoveList = $gameTemp.validMoveList(this.isAvoidDamageFloor()); 
+			$gameTemp.clearMoveTable();
+			typeArray = [(this.isType() === 'actor' ? 'enemy':'actor')];
+			bestXY = $gameTemp.avoidTargetXY(validMoveList, typeArray, this.posX(), this.posY());
+			if (bestXY[2] > atkDist) {
+				return 'absposition ' + bestXY[0] + ' ' + bestXY[1];
+			} else return 'nearestOpponent';
 		}
 		return false;
 	};
@@ -365,13 +389,18 @@
 
 	// these mode will make the AI skip targeting process and just move, extend it to have more conditions
 	Game_Battler.prototype.isSkipAttackMode = function(){
-		if (this.battleMode() === 'escape'){
+		var mode = this.battleMode();
+		if (mode === 'escape'){
 			this.setBattleMode('nearestFriend');
 			return true;
-		} else if (this.battleMode() === 'absRegionUp' || this.battleMode() === 'absRegionDown'){
+		} else if (mode === 'absRegionUp' || mode === 'absRegionDown'){
 			return true;
+		} else if (mode.match(/absPosition/i)){
+			return true;
+		} else if (mode.match(/absavoid/i)){
+			return true
 		}
-		return false
+		return false;
 	};
 
 //==========================================================================================================
@@ -486,6 +515,18 @@
 		return this.bestXYinMoveList(validMoveList, bestXY[0], bestXY[1], route);
 	};
 
+	Game_Temp.prototype.avoidTargetXY = function(validMoveList, typeArray){
+		var targetList = [];
+		var activeEventId = $gameTemp.activeEvent().eventId();
+		$gameMap.events().forEach(function(otherEvent) {
+			if (otherEvent.eventId() === activeEventId || otherEvent.isErased() || !otherEvent.isTargetValid()) return;
+			if (typeArray.contains(otherEvent.isType()) || typeArray.contains(otherEvent.aiFlag())){
+				targetList.push([otherEvent.posX(), otherEvent.posY()]);
+			}
+		});
+		return this.farestXYinMoveList(validMoveList, targetList);
+	};
+
 	//given a certain position, return a best reachable [distance, route to destination, destination's [x, y]]
 	Game_Temp.prototype.distRouteXY = function(x, y, oriX, oriY, fallBackMove){
 		var minDist = _maxMove + $gameMap.distTo(x, y, oriX, oriY);
@@ -559,6 +600,31 @@
 		return bestXY;
 	};
 
+	Game_Temp.prototype.farestXYinMoveList = function(validMoveList, targetList){
+		var maxDist = 0;
+		var maxDistOri = 0;
+		var bestXY = validMoveList[0];
+		for (var i = 0; i < validMoveList.length; i++){
+			var pos = validMoveList[i];
+			var minDist = $gameMap.width() + $gameMap.height();
+			for (var j = 0; j < targetList.length; j++){
+				var targetXY = targetList[j];
+				var dist = $gameMap.distTo(pos[0], pos[1], targetXY[0], targetXY[1]);
+				if (dist < maxDist) {
+					minDist = 0;
+					break;
+				}
+				minDist = Math.min(dist, minDist);
+			}
+			if (minDist > maxDist){
+				maxDist = minDist;
+				bestXY = pos;
+			}
+			if (i === 0) maxDistOri = minDist;
+		}
+		return [bestXY[0], bestXY[1], maxDist, maxDistOri];//also return maxDist and maxDistOri(plan to check distance to determine skip attack or not)
+	};
+
 	//if the position is within the route to [endX, endY], return real distance from [x, y] to [endX, endY], else return directdistance + _maxMove
 	// 1 tile next to a route tile will also be considered as in route, the real distance can be easily calculated.
 	Game_Temp.prototype.routeDistance = function(endX, endY, x, y, route) {
@@ -583,4 +649,6 @@
 	};
 
 })();
+
+
 
