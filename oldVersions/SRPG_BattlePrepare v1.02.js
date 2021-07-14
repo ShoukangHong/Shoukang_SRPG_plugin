@@ -2,6 +2,7 @@
 // SRPG_BattlePrepare.js
 //--------------------------------------------------------------------------------------------------------------------
 // free to use and edit    v1.02 reconstructed some complicated control flows. Don't show actor commands when remove is disabled
+// change the name to SRPG_BattlePrepare to use
 //====================================================================================================================
 /*:
  * @plugindesc Add battle Prepare phase at the beginning of SRPG battle.
