@@ -1,7 +1,8 @@
 //====================================================================================================================
-// SRPG_BattlePrepare.js
+// SRPG_BattlePrepare_v1.03.js
 //--------------------------------------------------------------------------------------------------------------------
 // free to use and edit    V1.03 New Appearance and features! New script calls. Remove funtion includes() for better compatibility
+// rename to SRPG_BattlePrepare to use
 //====================================================================================================================
 /*:
  * @plugindesc Add battle Prepare phase at the beginning of SRPG battle.
