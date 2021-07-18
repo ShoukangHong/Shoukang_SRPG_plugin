@@ -526,6 +526,15 @@
                 this.menuCalling = false;
                 return;
             }
+            if ($gameSystem.isSubBattlePhase() === 'normal') {
+                if (Input.isTriggered('pageup')) {
+                    SoundManager.playCursor();
+                    $gameSystem.getNextLActor();
+                } else if (Input.isTriggered('pagedown')) {
+                    SoundManager.playCursor();
+                    $gameSystem.getNextRActor();
+                }
+            }
             if ($gameSystem.isSubBattlePhase() === 'actor_move') {
                 if (Input.isTriggered('cancel') || TouchInput.isCancelled()) {
                     this.srpgCancelActorMove();
@@ -901,7 +910,7 @@
 //======================================================================================================
 // SRPG Battle member requirement window
 //======================================================================================================
-    function Window_SrpgMemberRequirement() {
+    window.Window_SrpgMemberRequirement = function (){
         this.initialize.apply(this, arguments);
     }
 
@@ -948,7 +957,7 @@
         if ($gameSystem.isSRPGMode() == true && $gameSystem.isBattlePhase() === 'battle_prepare'){
             this._SrpgMemberRequirementWindow = new Window_SrpgMemberRequirement(0, 0);
             this._SrpgMemberRequirementWindow.y = Graphics.boxHeight - this._SrpgMemberRequirementWindow.height - this._goldWindow.height;
-            this.addWindow(this._SrpgMemberRequirementWindow);          
+            this.addWindow(this._SrpgMemberRequirementWindow);
         }
     };
 
