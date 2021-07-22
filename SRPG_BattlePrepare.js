@@ -1,7 +1,8 @@
 //====================================================================================================================
 // SRPG_BattlePrepare.js
 //--------------------------------------------------------------------------------------------------------------------
-// free to use and edit    V1.04 Fixed some small issues. Modified BattleUI plugin compatable with this plugin is now available on my github page.
+// free to use and edit    latest update 7/22/2021, fix setMaxActor script call.
+// V1.04 Fixed some small issues. Modified BattleUI plugin compatable with this plugin is now available on my github page.
 //====================================================================================================================
 /*:
  * @plugindesc Add battle Prepare phase at the beginning of SRPG battle.
@@ -217,8 +218,16 @@
     }
 
     Game_Party.prototype.setMaxActor = function(num){
-        if (num < 1) throw 'MaxActor must be bigger than 0!'
         this._srpgMaxActor = num;
+        var eventList = $gameMap.events();
+        for (var i = eventList.length - 1; i >= 0; i--) {
+            if (this.getMaxActor() >= this.getCurrentActorNumber()) return;
+            var event = eventList[i];
+            if (event.isType() === 'actor' && Number(event.event().meta.id) === 0 && !event.isErased()){
+                $gameTemp.setActiveEvent(event);
+                Scene_Base.prototype.commandRemove.call(this);
+            }
+        }
     }
 
     Game_Party.prototype.getMaxActor = function(){
@@ -226,7 +235,6 @@
     }
 
     Game_Party.prototype.setMinActor = function(num){
-        if (num < 1) throw 'minActor must be bigger than 0!'
         this._srpgMinActor = num;
     }
 
