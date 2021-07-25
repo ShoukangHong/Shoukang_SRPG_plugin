@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_ShowAoERange.js
 //-----------------------------------------------------------------------------
-//Free to use and edit    v.101 support battleprepare plugin, check skill stype and seal
+//Free to use and edit    v.1.02 add range of default srpg attack skill. Support loop map.
 //=============================================================================
 /*:
  * @plugindesc The original attack range only shows the enemy/actor's default skill range.
@@ -10,6 +10,7 @@
  * 
  * @param AoE Color
  * @desc Set the color of AoE tile 
+
  * https://www.w3schools.com/cssref/css_colors.asp
  * @type string
  * @default MediumVioletRed
@@ -17,19 +18,18 @@
  * @param show actor AoE
  * @desc Also show actor's AoE. If actor has tooooo much
  * skills it might look ugly and have lag spikes.
- * @type string
+ * @type boolean
  * @default false
  *
  * @help
  * The original attack range only shows the enemy/actor's default skill range, which doesn't provide
  * enough information for players to avoid AoEs and other skills.
  * This plugin will show attack and AoE Range of all available skills in actor's turn.
- * Tiles within attack range will be colored red, tiles not within attack range but within AoE  range
+ * Tiles within attack range will be colored red, tiles not within attack range but within AoE range
  * will be colored differently.
- * Although SRPG doesn't need you to add default skill "attack"(Id:1), please add this skill to your       
- * actors(unless your actor can't use default attack) to allow this plugin to show its skill range.
  * ====================================================================================================
- * To do: add range of default srpg attack skill.
+ * to do: improve algorithm. Now the worst case complexity is O(move^2 range^2 * AoeRange^2 * skillNumber)
+ * v 1.02 add range of default srpg attack skill. Support loop map.
  * v 1.01 now it will check skill stype, seal, etc.
  * v 1.00 first release!
  * ====================================================================================================
@@ -39,59 +39,39 @@
 (function () {
 	var parameters = PluginManager.parameters('SRPG_ShowAoERange');
 	var _AoEColor = parameters['AoE Color'] || "MediumVioletRed";
-	var _showActorAoE = parameters['show actor AoE'] || "false";
+	var _showActorAoE = !!eval(parameters['show actor AoE']) || false;
 
 //In actor phase, show range and AoE range of all skills
-	var _shoukangsrpgMakeMoveTable = Game_System.prototype.srpgMakeMoveTable;
+	var _shoukangSrpgMakeMoveTable = Game_System.prototype.srpgMakeMoveTable;
 	Game_System.prototype.srpgMakeMoveTable = function(event) {
-		if (!$gameMap.isEventRunning() && ($gameSystem.isBattlePhase() === 'actor_phase' && $gameSystem.isSubBattlePhase() === 'normal' || $gameSystem.isBattlePhase() === 'battle_prepare')){
+		if (!$gameMap.isEventRunning() && ($gameSystem.isBattlePhase() === 'actor_phase' &&
+		   $gameSystem.isSubBattlePhase() === 'normal' || $gameSystem.isBattlePhase() === 'battle_prepare')){
 			var user = $gameSystem.EventToUnit(event.eventId())[1];
-			var item = null;
-			var x = event.posX();
-			var y = event.posY();
-			var range = 0;
 			$gameTemp.clearMoveTable();
 			event.makeMoveTable(event.posX(), event.posY(), user.srpgMove(), null, user.srpgThroughTag());
 			user.skills().forEach(function(item){//all skills
-				if (event.isType() === 'actor'){
-					if (!user.addedSkillTypes().includes(item.stypeId) && item.stypeId !== 0) return;
-				}
-				if (!(user.canPaySkillCost(item) && user.isSkillWtypeOk(item) && !user.isSkillSealed(item.id) && !user.isSkillTypeSealed(item.stypeId))) return;//if not useable don't show
-				range = user.srpgSkillRange(item);
-				var areaRange = 0;
-				var minRange = null;
-				var shape = null;
-				if (item.meta.srpgAreaRange) {//check if it's an AoE skill
-					areaRange = Number(item.meta.srpgAreaRange);
-					minRange = Number(item.meta.srpgAreaMinRange) || 0;
-					shape = item.meta.srpgAreaType || '';
-				}
-				if (item.meta.notUseAfterMove) { // cannot move before attacking
-					if ((areaRange === 0 || (_showActorAoE === 'false' && event.isType() === 'actor'))) event.makeRangeTable(x, y, range, null, x, y, item);
-					else event.makeAoETable(x, y, range, null, item, areaRange, minRange, shape, user);
-					return;
-				}
-				$gameTemp.moveList().forEach(function(pos) {//all reachable tiles
+				if (!user.srpgCanShowRange(item)) return;//if not useable don't show
+				var range = user.srpgSkillRange(item);
+				var areaRange = Number(item.meta.srpgAreaRange) || 0;
+				var minRange = Number(item.meta.srpgAreaMinRange) || 0;
+				var shape = item.meta.srpgAreaType || '';
+				var canDrawAoE = event.canDrawAoE(areaRange);
+
+				$gameTemp.moveList().some(function(pos) {//all reachable tiles
 					var x = pos[0];
 					var y = pos[1];
-					var occupied = $gameMap.events().some(function(otherEvent) {
-						if (otherEvent === event || otherEvent.isErased() || !otherEvent.pos(x, y)) return false;
-						if (otherEvent.isType() === 'enemy') return true;
-						if (otherEvent.isType() === 'actor') return true;
-						if (otherEvent.isType() === 'playerEvent') return true;
-					});	
-					if (!occupied) {
-						if (areaRange === 0 || (_showActorAoE === 'false' && event.isType() === 'actor')) {
-							event.makeRangeTable(x, y, range, null, x, y, item);
-						} else {
-							event.makeAoETable(x, y, range, null, item, areaRange, minRange, shape, user);//if skill is AoE use this function
-						}
+					if (!$gameMap.isOccupied(x, y)) {
+						if (canDrawAoE) event.makeAoETable(x, y, range, null, item, areaRange, minRange, shape, user);//if skill is AoE use this function
+						else event.makeRangeTable(x, y, range, null, x, y, item);
 					}
+					return item.meta.notUseAfterMove // if cannot move before attacking,return after processed the origin.
 				});
 			});
 			$gameTemp.convertRangeList($gameMap.width(), $gameMap.height());
 			$gameTemp.pushRangeListToMoveList();
-		} else _shoukangsrpgMakeMoveTable.call(this, event);
+		} else{
+			_shoukangSrpgMakeMoveTable.call(this, event);
+		} 
 	};
 
 //for each tile in attack range, make AoE Table
@@ -102,7 +82,7 @@
 		var height = $gameMap.height();
 		var edges = [];
 		if (range > 0) edges = [[x, y, range, [0], []]];
-		else $gameTemp.setAoETable(x, y, areaRange, areaminRange, shape, d, width, height);
+		else $gameTemp.setAoETable(x, y, areaRange, areaminRange, shape, d);
 		if (minRange <= 0 && $gameTemp.RangeTable(x, y)[0] < 0) {
 			if ($gameTemp.MoveTable(x, y)[0] < 0) $gameTemp.pushRangeList([x, y, true]);
 			$gameTemp.setRangeTable(x, y, range, [0]);
@@ -121,38 +101,61 @@
 				forward[10-d] = 1;
 				if (drange > 0) edges.push([dx, dy, drange, route, forward]);
 				if ($gameMap.distTo(x, y, dx, dy) >= minRange && this.srpgRangeExtention(dx, dy, x,	y, skill, range)) {
-					if ($gameTemp.RangeTable(dx, dy)[0] < 0 || $gameTemp.RangeTable(dx, dy)[1] === 'A') {
+					if ($gameTemp.RangeTable(dx, dy)[0] < 0 || $gameTemp.RangeTable(dx, dy)[1] === 'AoE') {
 						$gameTemp.setRangeTable(dx, dy, drange, route);
 						if ($gameTemp.MoveTable(dx, dy)[0] < 0) {
 							$gameTemp.pushRangeList([dx, dy, true]);
 						}
 					}
-					$gameTemp.setAoETable(dx, dy, areaRange, areaminRange, shape, d, width, height);
+					$gameTemp.setAoETable(dx, dy, areaRange, areaminRange, shape, d);
 				}
 			}
 		}
 	};
 
-//if AoE is in area set attack flag as 'A' (AoE)
-	Game_Temp.prototype.setAoETable = function(dx, dy, aMax, aMin, shape, d, mapWidth, mapHeight) {
-		var xlim = mapWidth - dx + aMax;
-		var ylim = mapHeight - dy + aMax;
+
+//if AoE is in area set attack flag as 'AoE' (AoE)
+	Game_Temp.prototype.setAoETable = function(dx, dy, aMax, aMin, shape, d) {
+		var width = $gameMap.width();
+		var height = $gameMap.height();
 		var rlim = 1 + aMax * 2;
-		for (var m = Math.max(0, aMax - dx); m < rlim && m < xlim; ++m) {
-			for (var n = Math.max(0, aMax - dy); n < rlim && n < ylim; ++n) {
-					var aoex = dx + m -aMax;
-					var aoey = dy + n -aMax;
-				if (this.RangeTable(aoex, aoey)[0] < 0 && $gameMap.inArea(m-aMax, n-aMax, aMax, aMin, shape, d)) this.setRangeTable(aoex, aoey, - 1, 'A');
+		for (var m = 0; m < rlim; ++m) {
+			for (var n =0; n < rlim; ++n) {
+				var aoex = dx + m - aMax;
+				var aoey = dy + n - aMax;
+				if ($gameMap.isLoopVertical()) aoex = ((aoex % width) + width) % width;
+				if ($gameMap.isLoopHorizontal()) aoey = ((aoey % height) + height) % height;
+				if ( $gameMap.isValid(aoex, aoey) && this.RangeTable(aoex, aoey)[0] < 0 && 
+					$gameMap.inArea(m-aMax, n-aMax, aMax, aMin, shape, d)) {
+					this.setRangeTable(aoex, aoey, - 1, 'AoE');
+				}
 			}
 		}
 	};
+
 //make AoE range list according to Rangetable
 	Game_Temp.prototype.convertRangeList = function(width, height){
 		for (var i = 0; i < width; ++i){
 			for (var j = 0; j < height; ++j){
-				if (this.RangeTable(i, j)[1] === 'A') this.pushRangeList([i, j, 'A']);
+				if (this.RangeTable(i, j)[1] === 'AoE') this.pushRangeList([i, j, 'AoE']);
 			}
 		}
+	};
+
+	Game_Actor.prototype.srpgCanShowRange = function(skill){
+		//console.log(skill.id == this.attackSkillId(), this.addedSkillTypes().includes(skill.stypeId), skill.stypeId !== 0, Game_BattlerBase.prototype.srpgCanShowRange.call(this, skill))
+		if (skill.id == this.attackSkillId() || (this.addedSkillTypes().includes(skill.stypeId) && skill.stypeId !== 0)){
+			return Game_BattlerBase.prototype.srpgCanShowRange.call(this, skill);
+		} else return false;
+	};
+
+	Game_BattlerBase.prototype.srpgCanShowRange = function(skill){
+	    return (this.isSkillWtypeOk(skill) && this.canPaySkillCost(skill) &&
+	            !this.isSkillSealed(skill.id) && !this.isSkillTypeSealed(skill.stypeId));
+	};
+
+	Game_Event.prototype.canDrawAoE = function(areaRange){
+		return areaRange > 0 && (_showActorAoE === true || this.isType() == 'enemy')
 	};
 
 //fill AoE tiles with color
@@ -162,7 +165,7 @@
 		this._posY = y;
 		if (attackFlag === true) this.bitmap.fillAll('red');
 		else if (attackFlag === false) this.bitmap.fillAll('blue');
-		else if (attackFlag === 'A') this.bitmap.fillAll(_AoEColor);
+		else if (attackFlag === 'AoE') this.bitmap.fillAll(_AoEColor);
 	};
 
 	if (!Game_Enemy.prototype.skills) {
@@ -175,4 +178,13 @@
 	      return skills;
 	    }
 	};
+
+	Game_Map.prototype.isOccupied = function(x, y){
+		return $gameMap.eventsXyNt(x, y).some(function(otherEvent) {
+			if (otherEvent.eventId() !== $gameTemp.activeEvent().eventId() && !otherEvent.isErased()) {
+				return (otherEvent.pos(x, y) && ['enemy', 'actor', 'playerEvent'].indexOf(otherEvent.isType()) >= 0)
+			}
+		});
+	};
+
 })();
