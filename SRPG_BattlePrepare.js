@@ -425,7 +425,7 @@
     var _SRPG_Game_Player_startMapEvent = Game_Player.prototype.startMapEvent
     Game_Player.prototype.startMapEvent = function(x, y, triggers, normal) {
         if ($gameSystem.isSRPGMode() == true && !$gameMap.isEventRunning() && $gameSystem.isBattlePhase() === 'battle_prepare'){
-            event = $gameMap.eventsXy(x, y)[0];
+            var event = $gameMap.eventsXy(x, y)[0];
             if (!event) return;
             if ($gameSystem.isSubBattlePhase() === 'normal' && triggers[0] === 0) {
                 if (event.isType() === 'actor' && Number(event.event().meta.id) === 0 && !event.isErased()) {
