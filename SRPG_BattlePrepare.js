@@ -1,8 +1,7 @@
 //====================================================================================================================
 // SRPG_BattlePrepare.js
 //--------------------------------------------------------------------------------------------------------------------
-// free to use and edit    latest update 7/22/2021, fix setMaxActor script call.
-// V1.04 Fixed some small issues. Modified BattleUI plugin compatable with this plugin is now available on my github page.
+// free to use and edit    V1.05 Support for SRPG_AdvancedInteraction
 //====================================================================================================================
 /*:
  * @plugindesc Add battle Prepare phase at the beginning of SRPG battle.
@@ -78,6 +77,7 @@
  * If you have a specific actor number requirement, run these script calls after the 'SRPGBattle Start' plugin command.
  * These max and min numbers will be erased in the next battle.
  *==========================================================================================================================
+ * V1.05 Support for SRPG_AdvancedInteraction
  * V1.04 Fixed some small issues
  * V1.03 Enjoy the new Appearance and features!
  * v1.02 reconstructed some complicated control flows. Don't show actor commands when remove is disabled
@@ -547,7 +547,7 @@
                 if (Input.isTriggered('cancel') || TouchInput.isCancelled()) {
                     this.srpgCancelActorMove();
                 }
-            } else if ($gameSystem.isSubBattlePhase() === 'actor_target') {
+            } else if ($gameSystem.isSubBattlePhase() === 'actor_target' || $gameSystem.isSubBattlePhase() === 'actor_Interaction') {
                 if (Input.isTriggered('cancel') || TouchInput.isCancelled()) {
                     this.srpgCancelActorTarget();
                 }
