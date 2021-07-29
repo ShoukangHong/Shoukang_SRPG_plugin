@@ -194,9 +194,9 @@
         _SRPG_Window_ActorCommand_makeCommandList.call(this);
     };
 
-    var _Game_Map_srpgCancelActorTarget = Game_Map.prototype.srpgCancelActorTarget
+    var _Scene_Map_srpgCancelActorTarget = Scene_Map.prototype.srpgCancelActorTarget
     Scene_Map.prototype.srpgCancelActorTarget = function(){
-        _Game_Map_srpgCancelActorTarget.call(this);
+        _Scene_Map_srpgCancelActorTarget.call(this);
         $gameSystem.clearSrpgInteractionTag();
     }
 
