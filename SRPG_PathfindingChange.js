@@ -5,7 +5,7 @@
 // to SRPG_Rangecontrol and better route search function.
 //=============================================================================
 /*:
- * @plugindesc This plugin provides an enhanced pathfinding method, the enemy will always find the path which takes least turns to reach the opponent. See help for details.
+ * @plugindesc This plugin provides an enhanced pathfinding method. Now you can have my moveMethod plugin so it's not needed. 
  * 
  * @author Shoukang
  * 
