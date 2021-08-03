@@ -19,6 +19,7 @@
  *
  * Unit event will be triggered by actor command, rather than simply wait on top of it.
  * Object events can be triggered by actor command when you stand by.
+ * You can simply change your unitEvents to Objects to see the change.
  * To let the plugin recognize that an event is already triggered/not triggerable, leave the current page of your event blank.
  * ==========================================================================================================================
  * new event note tags:
