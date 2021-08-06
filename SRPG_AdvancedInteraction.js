@@ -1,11 +1,16 @@
 //====================================================================================================================
 // SRPG_AdvancedInteraction.js
 //--------------------------------------------------------------------------------------------------------------------
-// free to use and edit     v1.02 simplify note tag to <act:xxxx>, support moveAfterAction plugin better. New plugin command.
+// free to use and edit     v1.03 include Actor-enemy and actor-actor interaction.  Add built-in interactions and <condition:XXXX> note tag
 //====================================================================================================================
 /*:
  * @plugindesc Add Advanced interaction for SRPG battle.
  * @author Shoukang
+ *
+ * @param default no interaction
+ * @desc if true, all events except unitevent will have no interaction unless it has <act:xxxx> note tag.
+ * @type boolean
+ * @default false
  *
  * @param text object interaction
  * @desc default text for object interaction, if not specified by <act:xxxx>
@@ -15,29 +20,41 @@
  * @desc default text for unitEvent interaction, if not specified by <act:xxxx>
  * @default open
  *
+ * @param text battler interaction
+ * @desc default text for battler interaction, if not specified by <act:xxxx>
+ * @default talk
+ *
  * @help
  *
  * Unit event will be triggered by actor command, rather than simply wait on top of it.
- * Object events can be triggered by actor command when you stand by.
+ * Object events, actors and enemies can be triggered by actor command when you stand by.
  * You can simply change your unitEvents to Objects to see the change.
- * To let the plugin recognize that an event is already triggered/not triggerable, leave the current page of your event blank.
+ * To let the plugin recognize that an event is already triggered/not triggerable, leave the current page of your event blank, or use <act:null> or <condition:XXXX>.
+ * After changing the plugin parameters (and the event note tags), you need to restart the Srpg battle to see the change, loading a file
+ * that is in the middle of an srpg battle will have no effect.
  * ==========================================================================================================================
  * new event note tags:
- * <act:xxxx> set the specific interaction name for the event, this name will appear in actor command. You need to restart the srpg battle to see the change.
+ * <act:xxxx> set the specific interaction name for the event, this name will appear in actor command.
  * built in interation names:
  * <act:wait> wait on the event can trigger this interaction, no extra interaction command show up. Same as how original unit event work.
  * <act:null> this event is not interactable, no matter it has contents in the page or not.
+ * ==========================================================================================================================
+ * new event comments (not note tag), put in the first line of your current event page:
+ * <condition:XXXX>  define in which condition is the event interactable, XXXX will be considered as code and get evaluated.
+ * s[n]         value of switch n
+ * v[n]         value of variable n
+ * a            the active battler
+ * b            the battler of this event(if this event is a battler)
+ * ea           the active event
+ * eb           this event
+ * 
+ * For example: <condition: s[2] == true> means this interaction is valid when switch 2 is on.
+ * <condition: a.actorId() == 1 || a.actorId() == 2> means only actor 1 and actor 2 can interact with this event.
  * =========================================================================================================================
  * new plugin command:
  * $gameMap.event(eventId).setInteractionName('name'); 
  * Can be used to: 1. change the interaction name for events that can be triggered repeatedly, for exampele: 'open' --> 'close' --> 'open' --> 'close'
  * 2. disable interaction by $gameMap.event(eventId).setInteractionName('null');
- *==========================================================================================================================
- * Information for advanced users:
- * This plugin only have the actor-event interaction types, actor-actor and actor-enemy interaction such as trade, talk, rescue are
- * left for anyone who is interested to implement, the TODO notes are provided for you to start with. You can try to let actors interact
- * with player event to start with. (although it doesn't make much sense but it's easy and can help you understand what each step
- * is doing).
  * ==========================================================================================================================
  * v1.02 simplify note tag to <act:xxxx>, support moveafteraction plugin better. New plugin command.
  * v1.01 new event note tag and bug fix.
@@ -49,9 +66,11 @@
 
 (function () {
     'use strict';
-    var parameters = PluginManager.parameters('SRPG_BattlePrepare');
+    var parameters = PluginManager.parameters('SRPG_AdvancedInteraction');
+    var _defaultNoInteraction = !!eval(parameters['default no interaction']);
     var _textObject = parameters['text object interaction'] || 'interact';
     var _textUnitEvent = parameters['text unitEvent interaction'] || 'open';
+    var _textTalk = parameters['text battler interaction'] || 'talk';
 // TODO: add plugin parameters for the command text.
 
 //=================================================================================================
@@ -100,10 +119,14 @@
            this._interaction = this.event().meta.interaction;
         } else if (this.event() && this.event().meta.act){
            this._interaction = this.event().meta.act;
-        } else if (this.isType() === 'object'){
-            this._interaction = _textObject;
         } else if (this.isType() === 'unitEvent'){
             this._interaction = _textUnitEvent;
+        } else if (_defaultNoInteraction){
+            this._interaction = 'null';
+        } else if (this.isType() === 'object'){
+            this._interaction = _textObject;
+        } else if (this.isType() === 'actor' || this.isType() === 'enemy'){
+            this._interaction = _textTalk;
         } else {
             this._interaction = 'null';
         }
@@ -115,10 +138,30 @@
     }
 
     Game_Event.prototype.canInteract = function(type, name){
-        if (this.isErased() || this.getInteractionName() === 'wait' || this.getInteractionName() === 'null') return false;
+        if (this.isErased() || !this.page() || this.getInteractionName() === 'wait' || 
+            this.getInteractionName() === 'null' || this.isType() !== type) return false;
         if (name && name !== this.getInteractionName()) return false;
-        if (type === 'object' || type === 'unitEvent'){
-            return this.isType() === type && this.pageIndex() >= 0 && this.list().length > 1; //return false if the page has nothing.
+
+        var firstLine = this.list()[0]
+        if (firstLine.code === 108){
+            if (firstLine.parameters[0].match(/\s*<condition:(.+)>/)) {
+                var condition = RegExp.$1
+                var s = $gameSwitches._data;
+                var v = $gameVariables._data;
+                var ea = $gameTemp.activeEvent();
+                var eb = this;
+                var a = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
+                var b = undefined;
+                if ($gameSystem.EventToUnit(this.eventId())) {
+                    var b = $gameSystem.EventToUnit(this.eventId())[1];
+                }
+                if (!eval(condition)) return false;
+            }
+        }
+
+
+        if (['object', 'unitEvent', 'actor', 'enemy'].contains(type)){
+            return this.pageIndex() >= 0 && this.list().length > 1; //return false if the page has nothing.
         }
         //TODO: define whether this event can interact with your type and name
     }
@@ -139,13 +182,42 @@
     Window_ActorCommand.prototype.addInteractionCommands = function() {
         var dist0Events = $gameMap.eventsXyNt($gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY())
         var dist1Events = $gameMap.getSurroundingEvents($gameTemp.activeEvent());// this gets all events that surrounds(distance = 1) the activeEvent
-        this.addObjectCommand(dist1Events);
-        this.addUnitEventCommand(dist0Events);
+        this.addActorInteractionCommand(dist1Events);
+        this.addEnemyInteractionCommand(dist1Events);
+        this.addObjectInteractionCommand(dist1Events);
+        this.addUnitEventInteractionCommand(dist0Events);
         //TODO: use a function to add your command, make the function similar to the addObjectCommand function
     };
 
     //TODO: make similar function, this function define in which condition will you add your command, and add if meets condition.
-    Window_ActorCommand.prototype.addObjectCommand = function(events) {
+
+    Window_ActorCommand.prototype.addActorInteractionCommand = function(events) {
+        var nameList = []
+        for (var i = 0; i < events.length; i++){
+            if(events[i].canInteract('actor')){
+                var name = events[i].getInteractionName();
+                if (nameList.indexOf(name) < 0) {
+                    this.addCommand(name, 'actor', true, name);
+                    nameList.push(name);
+                }
+            }
+        }
+    };
+
+    Window_ActorCommand.prototype.addEnemyInteractionCommand = function(events) {
+        var nameList = []
+        for (var i = 0; i < events.length; i++){
+            if(events[i].canInteract('enemy')){
+                var name = events[i].getInteractionName();
+                if (nameList.indexOf(name) < 0) {
+                    this.addCommand(name, 'enemy', true, name);
+                    nameList.push(name);
+                }
+            }
+        }
+    };
+
+    Window_ActorCommand.prototype.addObjectInteractionCommand = function(events) {
         var nameList = []
         for (var i = 0; i < events.length; i++){
             if(events[i].canInteract('object')){
@@ -158,7 +230,7 @@
         }
     };
 
-    Window_ActorCommand.prototype.addUnitEventCommand = function(events) {
+    Window_ActorCommand.prototype.addUnitEventInteractionCommand = function(events) {
         var nameList = []
         for (var i = 0; i < events.length; i++){
             if(events[i].canInteract('unitEvent')){
@@ -176,7 +248,17 @@
         _Scene_Map_createSrpgActorCommandWindow.call(this);
         this._mapSrpgActorCommandWindow.setHandler('object', this.commandObject.bind(this));
         this._mapSrpgActorCommandWindow.setHandler('unitEvent', this.commandUnitEvent.bind(this));
+        this._mapSrpgActorCommandWindow.setHandler('actor', this.commandActorInteraction.bind(this));
+        this._mapSrpgActorCommandWindow.setHandler('enemy', this.commandEnemyInteraction.bind(this));
         //TODO: bind your symbol/type with commandInteraction, the symbol/type will be used to determine which kind of interaction is required.
+    };
+
+    Scene_Map.prototype.commandActorInteraction = function() {
+        this.commandObject();
+    };
+
+    Scene_Map.prototype.commandEnemyInteraction = function() {
+        this.commandObject();
     };
 
     Scene_Map.prototype.commandObject = function() {
@@ -301,7 +383,7 @@
     Scene_Map.prototype.triggerInteraction = function(){
         var type = $gameSystem.srpgInteractionType();
         var name = $gameSystem.srpgInteractionName();
-        if (type === 'object' || type === 'unitEvent'){
+        if (['object', 'unitEvent', 'actor', 'enemy'].contains(type)){
             this.startRegularInteraction();
         } 
         //TODO: else if ... do other interaction, build a function for the interaction as startObjectInteraction function
