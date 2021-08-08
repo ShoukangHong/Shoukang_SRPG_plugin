@@ -140,4 +140,72 @@
 			}
 		}
 	}
+	
+/*	Game_CharacterBase.prototype.makeMoveTable = function(x, y, move, unused, tag) {
+		var performance = window.performance;
+		var t0 = performance.now();
+		var edges = [];
+		var user = $gameSystem.EventToUnit(this.eventId())[1];
+		var specialMoveCost = user.getSpecialMoveCosts();
+		var compareFunc = function(a, b){return a[2] > b[2]};
+		if (move > 0) edges = [[x, y, move, [0]]];
+		$gameTemp.setMoveTable(x, y, move, [0]);
+		$gameTemp.pushMoveList([x, y, false]);
+		$gameMap.makeSrpgZoCTable(this.isType() == 'actor' ? 'enemy' : 'actor', this.throughZoC());
+
+		while (edges.length > 0) {
+			var cell = edges.heappop(compareFunc);
+			for (var d = 2; d < 10; d += 2) {
+				if (!this.srpgMoveCanPass(cell[0], cell[1], d, tag, specialMoveCost)) continue;//shoukang edit: add a check for special move cost
+				var dx = $gameMap.roundXWithDirection(cell[0], d);
+				var dy = $gameMap.roundYWithDirection(cell[1], d);
+				var movecost = $gameMap.srpgMoveCost(dx, dy, tag, specialMoveCost);
+				if ($gameTemp.MoveTable(dx, dy)[0] >= 0 || (cell[2] - movecost) < 0) continue; //shoukang edit: if move < cost skip
+
+				var dmove = cell[2] - movecost;
+				var route = cell[3].concat(d);			
+				$gameTemp.setMoveTable(dx, dy, dmove, route);
+				$gameTemp.pushMoveList([dx, dy, false]);
+				if (dmove > 0 && !$gameMap._zocTable[dx+','+dy]) {
+					edges.heappush([dx, dy, dmove, route], compareFunc);
+				}
+			}
+		}
+		var t1 = performance.now();
+		console.log((t1 - t0) + " milliseconds.")
+	}
+
+	Array.prototype.heappush = function(element, func = function(x,y){return x > y}){
+		this.push(element);
+		var idc = this.length - 1;
+		var idp = Math.floor((idc - 1)/2);
+		while (idp >= 0 && func(this[idc], this[idp])) {
+			//console.log(idc, Math.floor((idc - 1)/2));
+			[this[idc], this[idp]] = [this[idp], this[idc]];
+			idc = idp;
+			idp = Math.floor((idc - 1)/2);
+		}
+		//console.log(this);
+	}
+
+	Array.prototype.heappop = function(func = function(x,y){return x > y}){
+		var ans = this[0]
+		this[0] = this[this.length - 1]
+		this.pop();
+		var idp = 0;
+		var idc1 = idp * 2 + 1;
+		//var idc2 = idc1 + 1;
+		while (idc1 < this.length) {
+			if (idc1 + 1 < this.length && func(this[idc1 + 1], this[idc1])){
+				idc1 += 1;
+			}
+			if (func(this[idc1], this[idp])){
+				[this[idc1], this[idp]] = [this[idp], this[idc1]];
+				idp = idc1;
+				idc1 = idp * 2 + 1;
+			} else break;
+		}
+		//console.log(this, ans);
+		return ans
+	}*/
 })();
