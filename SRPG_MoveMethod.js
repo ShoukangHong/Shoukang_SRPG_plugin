@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_MoveMethod.js
 //-----------------------------------------------------------------------------
-// Free to use and edit   v1.01 add new 'avoid' mode and 'keepdistance' aiMove
+// Free to use and edit   version 1.02 improved clustering algorithm for mostXXX move method
 //=============================================================================
 /*:
  * @plugindesc More move modes and improved pathfinding that can handle all conditions!
@@ -53,8 +53,8 @@
  *   <mode:nearestFriend>  # move to the nearest friend.
  *   <mode:nearestOpponent># move to the nearest opponent.
  *   <mode:nearestUnitEvent> # move to the nearest unit event.
- *   <mode:mostFriends>    # move to the 'center' of friend units. May wander if they are too spread out. See the code for more info.
- *   <mode:mostOpponents>  # move to the 'center' of friend units. May wander if they are too spread out. See the code for more info.
+ *   <mode:mostFriends>    # move to the 'center' of friend units.
+ *   <mode:mostOpponents>  # move to the 'center' of friend units.
  *   <mode:avoidOpponents> # move away from the opponents, the distance is mesuared by direct distance, not route distance.
  *   <mode:absAvoidOpponents>  # with abs: regardless of nearby enemy.
  *   <mode:avoidFlags['type']> # move away from the events with <aiFlag:type>, or events with this type(object, enemy, unitevent, etc.). The distance is direct distance.
@@ -97,6 +97,7 @@
  * so that reachable positions are always shorter than unreachable ones.
  * To extend more modes, use 'battleModeExtension' function.
  * =============================================================================================================================
+ * version 1.02 improved clustering algorithm for mostXXX move method
  * version 1.01 add new 'avoid' mode and 'keepdistance' aiMove
  * version 1.00 first release!
  * =============================================================================================================================
@@ -146,6 +147,7 @@
     Game_Event.prototype.initMembers = function() {
         _SRPG_Game_Event_initMembers.call(this);
         this._avoidDamageFloor = undefined;
+        this._aiMove = undefined;
     };
 
 	Game_Event.prototype.setAvoidDamageFloor = function(val) {
@@ -180,7 +182,7 @@
 		//get validMoveList to check first.
 		// set aiMoveMode
 		var aiMoveMode = event.aiMove();
-		if (aiMoveMode){
+		if (aiMoveMode && (user.hpRate() < 1.0 || user.battleMode() !== 'stand')){
 			user.setBattleMode(aiMoveMode);
 		}
 		//add check for SkipAttackMode, skip targeting if the mode is SkipAttackMode
@@ -207,7 +209,8 @@
 		var user = $gameSystem.EventToUnit(event.eventId())[1];
 		if (user.battleMode() === 'stand') {
 			if (user.hpRate() < 1.0 || (target && target.isType() != event.isType())) {
-				user.setBattleMode('normal');
+				if (aiMoveMode) user.setBattleMode(aiMoveMode);
+				else user.setBattleMode('normal');
 			} else {
 				$gameTemp.clearMoveTable();
 				user.onAllActionsEnd();
@@ -270,10 +273,10 @@
 			bestXY = $gameTemp.mostPositionXY(validMoveList, typeArray, event.posX(), event.posY());
 		} else if (battleMode.match(/avoidOpponents/i)){//<mode:avoidOpponents> <mode:absAvoidOpponents>
 			typeArray = [(event.isType() === 'actor' ? 'enemy':'actor')];
-			bestXY = $gameTemp.avoidTargetXY(validMoveList, typeArray);
+			bestXY = $gameTemp.avoidTargetXY(validMoveList, typeArray, false);
 		} else if (battleMode.match(/\s*avoidFlags(.+)/i)){//<mode:avoidFlags['xxxx']>
 			typeArray = eval(battleMode.match(/\s*avoidFlags(.+)/i)[1]);
-			bestXY = $gameTemp.avoidTargetXY(validMoveList, typeArray);
+			bestXY = $gameTemp.avoidTargetXY(validMoveList, typeArray, false);
 		} else if (battleMode === 'regionUp' || battleMode === 'absRegionUp'){
 			bestXY = $gameTemp.bestRegionXY(validMoveList, 1);
 		} else if (battleMode === 'regionDown' || battleMode === 'absRegionDown'){
@@ -303,14 +306,11 @@
 
 	// check a tile is occupied or not, occupied by active event is not considered as occupied;
 	Game_Map.prototype.isOccupied = function(x, y){
-		var occupied = $gameMap.eventsXyNt(x, y).some(function(otherEvent) {
+		return $gameMap.eventsXyNt(x, y).some(function(otherEvent) {
 			if (otherEvent.eventId() !== $gameTemp.activeEvent().eventId() && !otherEvent.isErased()) {
-				if (otherEvent.pos(x, y) && ['enemy', 'actor', 'playerEvent'].contains(otherEvent.isType())) {
-					return true;
-				}
+				return (otherEvent.pos(x, y) && ['enemy', 'actor', 'playerEvent'].indexOf(otherEvent.isType()) >= 0)
 			}
 		});
-		return occupied;
 	};
 
 	// return move tiles that are stepable, and consider avoid damagefloor.
@@ -328,12 +328,27 @@
 
 	// get aiMoveFormula, example: <aiMove: 0.5 < a.hpRate() ? 'nearestOpponent' : 'mostFriends'>
 	// writing anything like nearestOpponent + mostFriends is forbiddened, because it's not score system anymore.
+
+	Game_Event.prototype.setAiMove = function (mode){
+		this._aiMove = mode;
+	};
+
+	Game_Interpreter.prototype.setAiMove = function (eventId, mode){
+		var battlerArray = $gameSystem.EventToUnit(eventId);
+		if (battlerArray && (battlerArray[0] === 'actor' || battlerArray[0] === 'enemy')) {
+	        $gameMap.event(eventId).setAiMove("\""+mode+"\"");
+	    }
+	    return true;
+	};
+
 	Game_Event.prototype.aiMove = function (){
 		var user = $gameSystem.EventToUnit(this.eventId())[1];
 		var a = user;
 		var event = this;
 		var meta = false;
-		if ($gameTemp.targetEvent() && this.eventId() === $gameTemp.targetEvent().eventId() && action.item() && action.item().meta.aiMove) {//self targeting skill (does it really work?)
+		if (this._aiMove !== undefined) {
+			meta = this._aiMove;
+		} else if ($gameTemp.targetEvent() && this.eventId() === $gameTemp.targetEvent().eventId() && action.item() && action.item().meta.aiMove) {//self targeting skill (does it really work?)
 			meta = action.item().meta.aiMove;
 		} else if (this.event().meta.aiMove){
 			meta = this.event().meta.aiMove;
@@ -344,8 +359,9 @@
 		} else if (user.isEnemy() && user.enemy().meta.aiMove) {
 			meta = user.enemy().meta.aiMove;
 		}
-
-		if (!meta) return false;
+		this.setAiMove(meta);
+		//console.log([this._aiMove, meta, eval(this._aiMove)])
+		if (!meta) return false; 
 		var result = this.aiMoveExtension(eval(meta), a);
 		if (result) return result;
 		else return eval(meta);
@@ -368,11 +384,13 @@
 			else return a.battleMode();
 		} else if (meta.match(/keepDist\s+(\d+)/i)){//<aiMove:'keepDist x'>
 			atkDist = meta.match(/keepDist\s+(\d+)/i)[1];
+			var ctrlDist = false;
+			if(meta.match(/keepDist\s+(\d+)\s+(\d+)/i)) ctrlDist = meta.match(/keepDist\s+(\d+)\s+(\d+)/i)[2];
 			this.makeMoveTable(this.posX(), this.posY(), a.srpgMove(), [0], a.srpgThroughTag());
 			var validMoveList = $gameTemp.validMoveList(this.isAvoidDamageFloor()); 
 			$gameTemp.clearMoveTable();
 			typeArray = [(this.isType() === 'actor' ? 'enemy':'actor')];
-			bestXY = $gameTemp.avoidTargetXY(validMoveList, typeArray, this.posX(), this.posY());
+			bestXY = $gameTemp.avoidTargetXY(validMoveList, typeArray, ctrlDist);
 			if (bestXY[2] > atkDist) {
 				return 'absposition ' + bestXY[0] + ' ' + bestXY[1];
 			} else return 'nearestOpponent';
@@ -426,48 +444,82 @@
 		return this.bestXYinMoveList(validMoveList, bestTargetXY[0], bestTargetXY[1], route);
 	};
 
-	//return best stop position aiming mean position of all vaild targets, can't fix the issue of symmetrical groups with large interval.
+	//return best stop position aiming mean position of all vaild targets
 	Game_Temp.prototype.mostPositionXY = function(validMoveList, typeArray, eventX, eventY){
-		var totalX = 0;
-		var totalY = 0;
-		var totalUnit = [];
+		var count = 1;
 		var totalDist = 0;
+		var totalUnit = [];
 		var activeEventId = $gameTemp.activeEvent().eventId();
 		$gameMap.events().forEach(function(otherEvent) {
 			if (otherEvent.eventId() === activeEventId || otherEvent.isErased() || !otherEvent.isTargetValid()) return;
 			if (typeArray.contains(otherEvent.isType()) || typeArray.contains(otherEvent.aiFlag())){
-				totalX += otherEvent.posX();
-				totalY += otherEvent.posY();
-				totalUnit.push([otherEvent.posX(), otherEvent.posY()]);                
+				totalUnit.push(otherEvent);
 			}
 		});
+		if (totalUnit.length == 0) return [eventX, eventY];
 
-		if (totalUnit.length < 0) return [eventX, eventY]; // no target unit at all
-		var meanX = Math.round(totalX/totalUnit.length);
-		var meanY = Math.round(totalY/totalUnit.length);
 		for (var i = 0; i < totalUnit.length; i++){
-			var unitXY = totalUnit[i];
-			totalDist += $gameMap.distTo(unitXY[0], unitXY[1], meanX, meanY);
-		}
-		var meanDist = totalDist/totalUnit.length;
-		var mostUnit = 0;
-		totalX = 0;
-		totalY = 0;
-		//if distance bigger than mean Distance the unit doesn't belong to the most target group (it's not a perfect way to do find most target)
-		for (var i = 0; i < totalUnit.length; i++){
-			unitXY = totalUnit[i];
-			if ($gameMap.distTo(unitXY[0], unitXY[1], meanX, meanY) <= meanDist) {
-				totalX += unitXY[0];
-				totalY += unitXY[1];
-				mostUnit++;
+			for (var j = i + 1; j < totalUnit.length; j ++){
+				totalDist += totalUnit[i].distTo(totalUnit[j].posX(), totalUnit[j].posY());
+				count += 1;
 			}
 		}
-		meanX = Math.round(totalX/mostUnit);
-		meanY = Math.round(totalY/mostUnit);
-		var distRouteXY = this.distRouteXY(meanX, meanY, eventX, eventY, true);
-		var bestXY = distRouteXY[2];
-		return this.bestXYinMoveList(validMoveList, bestXY[0], bestXY[1], distRouteXY[1]);
+		var threshold = Math.round(Math.pow(totalDist/count, 3/5));
+		var maxClusters = this.getMaxClusters(totalUnit, threshold);
+		//console.log(threshold);
+		var bestDist = Number.POSITIVE_INFINITY;
+		for (var i = 0; i < maxClusters.length; i++){
+			var sumX = 0;
+			var sumY = 0;
+			for (var j = 0; j < maxClusters[i].length; j++){
+				sumX += maxClusters[i][j].posX();
+				sumY += maxClusters[i][j].posY();
+			}
+			var distRouteXY = this.distRouteXY(Math.round(sumX / maxClusters[i].length), Math.round(sumY / maxClusters[i].length), eventX, eventY, true);
+			if (distRouteXY[0] < bestDist){
+				var bestDistRouteXY = distRouteXY;
+				bestDist = distRouteXY[0];
+			}
+		}
+		var bestXY = bestDistRouteXY[2];
+		return this.bestXYinMoveList(validMoveList, bestXY[0], bestXY[1], bestDistRouteXY[1]);
 	};
+
+
+//DBSCAN method to get clusters
+	Game_Temp.prototype.getMaxClusters = function(totalUnit, threshold){
+		var visited = new Set();
+		var clusters = [];
+		for (var i = 0; i < totalUnit.length; i++){
+			if (visited.has(totalUnit[i])) continue;
+			var id = clusters.length;
+			var stack = [totalUnit[i]];
+			clusters.push([]);
+			while (stack.length > 0){
+				var unit = stack.pop();
+				clusters[id].push(unit);
+				visited.add(unit);
+				for (var j = i + 1; j < totalUnit.length; j ++){
+					if (visited.has(totalUnit[j])) continue; 
+					if (unit.distTo(totalUnit[j].posX(), totalUnit[j].posY()) <= threshold){
+						stack.push(totalUnit[j]);
+						visited.add(totalUnit[j]);
+					}
+				}
+			}	
+		}
+		//console.log(clusters);
+		var maxClusters = [];
+		maxClusters.push([]);
+		for (var i = 0; i < clusters.length; i++){
+			if (maxClusters[0].length < clusters[i].length){
+				maxClusters = [clusters[i]];
+			} else if (maxClusters[0].length == clusters[i].length){
+				maxClusters.push(clusters[i]);
+			}
+		}
+		return maxClusters;
+	}
 
 	// region up: mode = 1, region down: mode = -1
 	Game_Temp.prototype.bestRegionXY = function(validMoveList, mode){
@@ -491,7 +543,7 @@
 		var minDist = _maxMove + width + height;
 		var bestXY = [oriX, oriY];
 		var route = [];
-		var fallBackXY = null;
+		var fallBackXY = [oriX, oriY];
 		for (var i = 0; i < width; i++){
 			for (var j = 0; j < height; j++){
 				if ($gameMap.regionId(i, j) !== regionId) continue;
@@ -515,7 +567,7 @@
 		return this.bestXYinMoveList(validMoveList, bestXY[0], bestXY[1], route);
 	};
 
-	Game_Temp.prototype.avoidTargetXY = function(validMoveList, typeArray){
+	Game_Temp.prototype.avoidTargetXY = function(validMoveList, typeArray, ctrlDist){
 		var targetList = [];
 		var activeEventId = $gameTemp.activeEvent().eventId();
 		$gameMap.events().forEach(function(otherEvent) {
@@ -524,7 +576,7 @@
 				targetList.push([otherEvent.posX(), otherEvent.posY()]);
 			}
 		});
-		return this.farestXYinMoveList(validMoveList, targetList);
+		return this.farestXYinMoveList(validMoveList, targetList, ctrlDist);
 	};
 
 	//given a certain position, return a best reachable [distance, route to destination, destination's [x, y]]
@@ -600,7 +652,7 @@
 		return bestXY;
 	};
 
-	Game_Temp.prototype.farestXYinMoveList = function(validMoveList, targetList){
+	Game_Temp.prototype.farestXYinMoveList = function(validMoveList, targetList, ctrlDist){
 		var maxDist = 0;
 		var maxDistOri = 0;
 		var bestXY = validMoveList[0];
@@ -616,6 +668,7 @@
 				}
 				minDist = Math.min(dist, minDist);
 			}
+			if (ctrlDist && minDist > ctrlDist) continue;
 			if (minDist > maxDist){
 				maxDist = minDist;
 				bestXY = pos;
