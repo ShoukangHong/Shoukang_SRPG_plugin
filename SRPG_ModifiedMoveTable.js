@@ -24,7 +24,7 @@
  * 
  * priority: states > equipments > actor/enemy > class
  * if there are multiple states/equipments that conflicts the final cost will be the last
- * equipment/state that have this notetag.
+ * equipment/state that have this notetag. It's not designed for very complicated needs.
  * if srpgthroughtag >= terrain tag, these notetags will be ignored.
  * =================================================================================
  * Please put this plugin below SRPG_RangeControl.
