@@ -51,7 +51,7 @@
  * For example: <condition: s[2] == true> means this interaction is valid when switch 2 is on.
  * <condition: a.actorId() == 1 || a.actorId() == 2> means only actor 1 and actor 2 can interact with this event.
  * =========================================================================================================================
- * new plugin command:
+ * new script calls:
  * $gameMap.event(eventId).setInteractionName('name'); 
  * Can be used to: 1. change the interaction name for events that can be triggered repeatedly, for exampele: 'open' --> 'close' --> 'open' --> 'close'
  * 2. disable interaction by $gameMap.event(eventId).setInteractionName('null');
