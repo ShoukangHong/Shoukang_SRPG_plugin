@@ -131,8 +131,8 @@
         var vectorLen = Math.sqrt(vectorX * vectorX + vectorY * vectorY);
         var minX = 0;
         var maxX = 0.5;
-        var minY = -1;
-        var maxY = 1;
+        var minY = -1.25;
+        var maxY = 1.25;
         var targetMinX = 0.5;
 
         for (var i = 0; i < allEvents.length; i++){
@@ -367,11 +367,19 @@
 //============================================================================================
 //Override these functions to support AoEAnimation
 //============================================================================================
-    var _Game_Party_maxBattleMembers = Game_Party.prototype.maxBattleMembers
-    Game_Party.prototype.maxBattleMembers = function() {
-        if ($gameSystem.isSRPGMode() && $gameTemp.areaTargets().length > 0) return $gameParty.SrpgBattleActors().length;
-        else return _Game_Party_maxBattleMembers.call(this);
+    var _Spriteset_Battle_createActors = Spriteset_Battle.prototype.createActors
+    Spriteset_Battle.prototype.createActors = function() {
+        if ($gameSystem.isSRPGMode() && $gameTemp.areaTargets().length > 0){
+            this._actorSprites = [];
+            for (var i = 0; i < $gameParty.SrpgBattleActors().length; i++) {
+                this._actorSprites[i] = new Sprite_Actor();
+                this._battleField.addChild(this._actorSprites[i]);
+            }          
+        } else{
+            _Spriteset_Battle_createActors.call(this);
+        }
     };
+
     Game_Battler.prototype.setAoEDistance = function(val){
         this._AoEDistance = val;
     }
