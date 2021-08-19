@@ -1,7 +1,7 @@
 //====================================================================================================================
 // SRPG_AdvancedInteraction.js
 //--------------------------------------------------------------------------------------------------------------------
-// free to use and edit     v1.04 include a way to cast wrap skill!
+// free to use and edit     v1.04 include a way to cast wrap skill and warp interaction!
 //====================================================================================================================
 /*:
  * @plugindesc Add Advanced interaction for SRPG battle.
@@ -24,8 +24,12 @@
  * @desc default text for battler interaction, if not specified by <act:xxxx>
  * @default talk
  *
- * @param wrap Animation Id
- * @desc animation for wrap skill
+ * @param wrap appear Animation Id
+ * @desc appear animation for wrap skill
+ * @default 52
+ *
+ * @param wrap disappear Animation Id
+ * @desc disappear animation for wrap skill
  * @default 52
  *
  * @help
@@ -60,11 +64,14 @@
  * Can be used to: 1. change the interaction name for events that can be triggered repeatedly, for exampele: 'open' --> 'close' --> 'open' --> 'close'
  * 2. disable interaction by $gameMap.event(eventId).setInteractionName('null');
  *
- * this.wrap(size, type);
+ * this.wrap(size, type, eventId);             # make a wrap interaction
+ * Put the code in a unitEvent or object event can make the event do a wrap interaction.
  * Put the code in a common event for your wrap skill. Trigger the common event via skill effect.
- * refer to Srpg AoE for size and type(shape), type is optional.
+ * Refer to Srpg AoE for size and type(shape).
+ * Type and eventId are optional, default type is 'circle', default eventId is the target event's Id.
+ * If you set the eventId to the active event Id: $gameTemp.activeEvent().eventId(), the actor will wrap.
  * ==========================================================================================================================
- * v1.04 include a way to cast wrap skill!
+ * v1.04 include a way to cast wrap skill and warp interaction!
  * v1.03 include Actor-enemy and actor-actor interaction.  Add built-in interactions and <condition:XXXX> note tag
  * v1.02 simplify note tag to <act:xxxx>, support moveafteraction plugin better. New plugin command.
  * v1.01 new event note tag and bug fix.
@@ -81,7 +88,8 @@
     var _textObject = parameters['text object interaction'] || 'interact';
     var _textUnitEvent = parameters['text unitEvent interaction'] || 'open';
     var _textTalk = parameters['text battler interaction'] || 'talk';
-    var _wrapAnimation = Number(parameters['wrap Animation Id']) || 52;
+    var _appearAnimation = Number(parameters['wrap appear Animation Id']) || 52;
+    var _disappearAnimation = Number(parameters['wrap disappear Animation Id']) || 52;
 // TODO: add plugin parameters for the command text.
 
 //=================================================================================================
@@ -384,7 +392,8 @@
             if (triggers[0] !== 0 || $gameTemp.RangeTable(x, y)[0] !== true) return;
 
             if ($gameSystem.srpgInteractionType() === 'wrap'){
-                var tag = $gameSystem.EventToUnit($gameTemp.targetEvent().eventId())[1].srpgThroughTag();
+                var targetArray = $gameSystem.EventToUnit($gameTemp.targetEvent().eventId())
+                var tag = targetArray ? targetArray[1].srpgThroughTag() : 0;
                 if ($gameTemp.targetEvent().srpgMoveCanPass(x, y, 5, tag) && $gameMap.positionIsOpen(x, y)){
                     $gameSystem.setSubBattlePhase('start_Interaction');
                 } else SoundManager.playBuzzer();
@@ -430,7 +439,7 @@
         $gameTemp.targetEvent()._realX = $gamePlayer.posX();
         $gameTemp.targetEvent()._realY = $gamePlayer.posY();
         this.preBattleSetDirection();
-        $gameTemp.targetEvent().requestAnimation(_wrapAnimation);
+        $gameTemp.targetEvent().requestAnimation(_appearAnimation);
         $gameTemp.clearWrapInfo();
         $gameSystem.clearSrpgInteractionType();
         $gameTemp.targetEvent().setTransparent(false);
@@ -457,7 +466,7 @@
         if ($gameSystem.srpgInteractionType() === 'wrap'){
             $gameSystem.setSubBattlePhase('start_Interaction');
             $gameSystem.clearSrpgInteractionType();
-            $gameTemp.targetEvent().requestAnimation(_wrapAnimation);
+            $gameTemp.targetEvent().requestAnimation(_appearAnimation);
             $gameTemp.clearWrapInfo();
             $gameTemp.targetEvent().setTransparent(false);
         } else{
@@ -471,10 +480,16 @@
 //wrap
 //============================================================================
 
-    Game_Interpreter.prototype.wrap = function(size, type) {
+    Game_Interpreter.prototype.wrap = function(size, type, eventId) {
+        if (eventId) $gameTemp.setTargetEvent($gameMap.event(eventId));
         $gameTemp.setWrapInfo(size, type);
+        $gameTemp.targetEvent().requestAnimation(_disappearAnimation);
         $gameTemp.targetEvent().setTransparent(true);
         $gameSystem.setSrpgInteractionType('wrap');
+        $gameSystem.setBattlePhase('actor_phase');
+        $gameSystem.setSubBattlePhase('actor_Interaction');
+        $gameTemp.clearMoveTable();
+        $gameTemp.drawWarpCell();
     }
 
     Game_Temp.prototype.setWrapInfo = function(size, type){
@@ -494,34 +509,29 @@
 
     var _Scene_Map_srpgAfterAction = Scene_Map.prototype.srpgAfterAction;
     Scene_Map.prototype.srpgAfterAction = function() {
-        if ($gameSystem.srpgInteractionType() === 'wrap'){
-            $gameSystem.setBattlePhase('actor_phase')
-            $gameSystem.setSubBattlePhase('actor_Interaction')
-            $gameTemp.clearMoveTable()
-            $gameTemp.targetEvent().drawWarpCell();
-        } else{
+        if ($gameSystem.srpgInteractionType() !== 'wrap'){
             _Scene_Map_srpgAfterAction.call(this);
         }
     };
 
-    Game_Character.prototype.drawWarpCell = function(){
-        var size = $gameTemp.wrapInfo().size
-        var type = $gameTemp.wrapInfo().type
+    Game_Temp.prototype.drawWarpCell = function(){
+        var size = this.wrapInfo().size;
+        var type = this.wrapInfo().type;
         var width = $gameMap.width();
         var height = $gameMap.height();
         for (var x = 0; x < 1+size*2; x++) {
             for (var y = 0; y < 1+size*2; y++) {
-                var aoex = x-size + this.posX();
-                var aoey = y-size + this.posY();
+                var aoex = x-size + this.targetEvent().posX();
+                var aoey = y-size + this.targetEvent().posY();
                 if ($gameMap.isLoopVertical()) aoex = ((aoex % width) + width) % width;
                 if ($gameMap.isLoopHorizontal()) aoey = ((aoey % height) + height) % height;
                 if ($gameMap.inArea(x-size, y-size, size, 1, type)) {
-                    $gameTemp.setRangeTable(aoex,aoey, true, null);
-                    $gameTemp.pushMoveList([aoex, aoey, false]);
+                    this.setRangeTable(aoex,aoey, true, null);
+                    this.pushMoveList([aoex, aoey, false]);
                 }
             }
         }
-        $gameTemp.setResetMoveList(true);
+        this.setResetMoveList(true);
     }
 
     if (!Game_Map.prototype.positionIsOpen){
