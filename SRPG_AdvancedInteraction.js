@@ -1,7 +1,7 @@
 //====================================================================================================================
 // SRPG_AdvancedInteraction.js
 //--------------------------------------------------------------------------------------------------------------------
-// free to use and edit     v1.03 include Actor-enemy and actor-actor interaction.  Add built-in interactions and <condition:XXXX> note tag
+// free to use and edit     v1.04 include a way to cast wrap skill!
 //====================================================================================================================
 /*:
  * @plugindesc Add Advanced interaction for SRPG battle.
@@ -23,6 +23,10 @@
  * @param text battler interaction
  * @desc default text for battler interaction, if not specified by <act:xxxx>
  * @default talk
+ *
+ * @param wrap Animation Id
+ * @desc animation for wrap skill
+ * @default 52
  *
  * @help
  *
@@ -55,7 +59,13 @@
  * $gameMap.event(eventId).setInteractionName('name'); 
  * Can be used to: 1. change the interaction name for events that can be triggered repeatedly, for exampele: 'open' --> 'close' --> 'open' --> 'close'
  * 2. disable interaction by $gameMap.event(eventId).setInteractionName('null');
+ *
+ * this.wrap(size, type);
+ * Put the code in a common event for your wrap skill. Trigger the common event via skill effect.
+ * refer to Srpg AoE for size and type(shape), type is optional.
  * ==========================================================================================================================
+ * v1.04 include a way to cast wrap skill!
+ * v1.03 include Actor-enemy and actor-actor interaction.  Add built-in interactions and <condition:XXXX> note tag
  * v1.02 simplify note tag to <act:xxxx>, support moveafteraction plugin better. New plugin command.
  * v1.01 new event note tag and bug fix.
  * v1.00 first release!
@@ -71,6 +81,7 @@
     var _textObject = parameters['text object interaction'] || 'interact';
     var _textUnitEvent = parameters['text unitEvent interaction'] || 'open';
     var _textTalk = parameters['text battler interaction'] || 'talk';
+    var _wrapAnimation = Number(parameters['wrap Animation Id']) || 52;
 // TODO: add plugin parameters for the command text.
 
 //=================================================================================================
@@ -371,12 +382,22 @@
     Game_Player.prototype.startMapEvent = function(x, y, triggers, normal) {
         if ($gameSystem.isSubBattlePhase() === 'actor_Interaction' &&  $gameSystem.isSRPGMode() == true && !$gameMap.isEventRunning() ){
             if (triggers[0] !== 0 || $gameTemp.RangeTable(x, y)[0] !== true) return;
+
+            if ($gameSystem.srpgInteractionType() === 'wrap'){
+                var tag = $gameSystem.EventToUnit($gameTemp.targetEvent().eventId())[1].srpgThroughTag();
+                if ($gameTemp.targetEvent().srpgMoveCanPass(x, y, 5, tag) && $gameMap.positionIsOpen(x, y)){
+                    $gameSystem.setSubBattlePhase('start_Interaction');
+                } else SoundManager.playBuzzer();
+                return;
+            }
+
             var event = $gameMap.getInteractionEvent(x, y);
             if (event){
                 $gameTemp.setTargetEvent(event);
                 $gameSystem.clearSrpgActorCommandStatusWindowNeedRefresh();
                 $gameSystem.setSubBattlePhase('start_Interaction');
             } else SoundManager.playBuzzer();
+
         } else _SRPG_Game_Player_startMapEvent.call(this, x, y, triggers, normal)
     };
 
@@ -386,6 +407,9 @@
         if (['object', 'unitEvent', 'actor', 'enemy'].contains(type)){
             this.startRegularInteraction();
         } 
+        if (type === 'wrap'){
+            this.startWrap();
+        }
         //TODO: else if ... do other interaction, build a function for the interaction as startObjectInteraction function
     }
 
@@ -398,6 +422,18 @@
         $gameSystem.pushSearchedItemList([event.posX(), event.posY()]);
         $gameSystem.clearSrpgInteractionType();
         $gameSystem.clearSrpgInteractionName();
+    }
+
+    Scene_Map.prototype.startWrap = function(){
+        $gameTemp.targetEvent()._x = $gamePlayer.posX();
+        $gameTemp.targetEvent()._y = $gamePlayer.posY();
+        $gameTemp.targetEvent()._realX = $gamePlayer.posX();
+        $gameTemp.targetEvent()._realY = $gamePlayer.posY();
+        this.preBattleSetDirection();
+        $gameTemp.targetEvent().requestAnimation(_wrapAnimation);
+        $gameTemp.clearWrapInfo();
+        $gameSystem.clearSrpgInteractionType();
+        $gameTemp.targetEvent().setTransparent(false);
     }
 
 
@@ -418,9 +454,92 @@
 
     var _Scene_Map_srpgCancelActorTarget = Scene_Map.prototype.srpgCancelActorTarget
     Scene_Map.prototype.srpgCancelActorTarget = function(){
-        _Scene_Map_srpgCancelActorTarget.call(this);
-        $gameSystem.clearSrpgInteractionType();
-        $gameSystem.clearSrpgInteractionName();
+        if ($gameSystem.srpgInteractionType() === 'wrap'){
+            $gameSystem.setSubBattlePhase('start_Interaction');
+            $gameSystem.clearSrpgInteractionType();
+            $gameTemp.targetEvent().requestAnimation(_wrapAnimation);
+            $gameTemp.clearWrapInfo();
+            $gameTemp.targetEvent().setTransparent(false);
+        } else{
+            _Scene_Map_srpgCancelActorTarget.call(this);
+            $gameSystem.clearSrpgInteractionType();
+            $gameSystem.clearSrpgInteractionName();
+        }
     }
+
+//============================================================================
+//wrap
+//============================================================================
+
+    Game_Interpreter.prototype.wrap = function(size, type) {
+        $gameTemp.setWrapInfo(size, type);
+        $gameTemp.targetEvent().setTransparent(true);
+        $gameSystem.setSrpgInteractionType('wrap');
+    }
+
+    Game_Temp.prototype.setWrapInfo = function(size, type){
+        this._wrapInfo = {
+            size : size,
+            type : type
+        };
+    }
+
+    Game_Temp.prototype.wrapInfo = function(){
+        return this._wrapInfo;
+    }
+
+    Game_Temp.prototype.clearWrapInfo = function(){
+        this._wrapInfo = undefined;
+    }
+
+    var _Scene_Map_srpgAfterAction = Scene_Map.prototype.srpgAfterAction;
+    Scene_Map.prototype.srpgAfterAction = function() {
+        if ($gameSystem.srpgInteractionType() === 'wrap'){
+            $gameSystem.setBattlePhase('actor_phase')
+            $gameSystem.setSubBattlePhase('actor_Interaction')
+            $gameTemp.clearMoveTable()
+            $gameTemp.targetEvent().drawWarpCell();
+        } else{
+            _Scene_Map_srpgAfterAction.call(this);
+        }
+    };
+
+    Game_Character.prototype.drawWarpCell = function(){
+        var size = $gameTemp.wrapInfo().size
+        var type = $gameTemp.wrapInfo().type
+        var width = $gameMap.width();
+        var height = $gameMap.height();
+        for (var x = 0; x < 1+size*2; x++) {
+            for (var y = 0; y < 1+size*2; y++) {
+                var aoex = x-size + this.posX();
+                var aoey = y-size + this.posY();
+                if ($gameMap.isLoopVertical()) aoex = ((aoex % width) + width) % width;
+                if ($gameMap.isLoopHorizontal()) aoey = ((aoey % height) + height) % height;
+                if ($gameMap.inArea(x-size, y-size, size, 1, type)) {
+                    $gameTemp.setRangeTable(aoex,aoey, true, null);
+                    $gameTemp.pushMoveList([aoex, aoey, false]);
+                }
+            }
+        }
+        $gameTemp.setResetMoveList(true);
+    }
+
+    // Game_Character.prototype.setSelected = function(val){
+    //     this._isSelected = val;
+    // }
+
+    // Game_Character.prototype.isSelected = function(){
+    //     return this._isSelected;
+    // }
+    //         // $gameMap.setActiveEvent(store);
+    // var _Sprite_Character_updateVisibility = Sprite_Character.prototype.updateVisibility
+    // Sprite_Character.prototype.updateVisibility = function() {
+    //     _Sprite_Character_updateVisibility.call(this);
+    //     if (this._character.isSelected()){
+    //         if (this._frameCount === undefined) this._frameCount = 0;
+    //         this._frameCount = (this._frameCount + 1) % 60;
+    //         this.visible = this._frameCount <= 30;
+    //     }
+    // };
 
 })();
