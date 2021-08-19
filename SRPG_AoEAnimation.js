@@ -1,7 +1,7 @@
 //=============================================================================
 //SRPG_AoEAnimation.js
 // recent updates: fix a bug caused by max party member, fix the bug of sprite priority in battle.
-// v 1.00
+// v 1.01 add counter attack mode!
 //=============================================================================
 /*:
  * @plugindesc Allows AoE skills to show once when targetting multiple targets. Requires SRPG_AoE. This is a modified version by Shoukang
@@ -32,8 +32,20 @@
  * @type boolean
  * @default true
  *
+ * @param counterattack Mode
+ * @desc what targets in the AoE can do counterattack
+ * @type select
+ * @option All targets
+ * @value all
+ * @option target in AoE center
+ * @value center
+ * @option first viable target
+ * @value first
+ * @option No AoE counter
+ * @value false
+ * @default all
+
  * @help
- * This plugin is a work in progress!
  * Credits to: Dopan, Dr. Q, Traverse, SoulPour777
  *
  * When an AoE spell is cast and more than 1 target is selected ($gameTemp.areaTargets), each target is added to a queue and then the game will execute each battle individually 1 on 1
@@ -61,9 +73,10 @@
  *
  * The placement will automatically adjust battlers' distance to make them reasonable.(within the defined x and y range)
  * ===================================================================================================
+ * v 1.01 add counter attack mode!
+ * ===================================================================================================
  * Compatibility:
  * Need SRPG_AoE, and place this plugin below it.
- * v 1.00
  */
 (function () {
     //=================================================================================================
@@ -76,6 +89,7 @@
     var _yRange = parameters['y range'] || 'Graphics.height / 3.5';
     var _tilt = Number(parameters['tilt']);
     var _surround = !!eval(parameters['allow surrounding']);
+    var _counterMode = parameters['counterattack Mode'];
 
     var coreParameters = PluginManager.parameters('SRPG_core');
     var _srpgTroopID = Number(coreParameters['srpgTroopID'] || 1);
@@ -141,7 +155,7 @@
             var posY = allEvents[i].posY() - activeEvent.posY();
             var projectionY = (vectorY * posX - vectorX * posY) / vectorLen;
             var projectionX = _tilt * projectionY + (vectorX * posX + vectorY * posY) / vectorLen; //0.2 * sin helps to make a better veiw.
-            battler.setAoEScenePosition(projectionX, projectionY)
+            battler.setAoEScenePosition(projectionX, projectionY);
             if (i > 0) targetMinX = Math.min(projectionX, targetMinX);
             minX = Math.min(projectionX, minX);
             minY = Math.min(projectionY, minY);
@@ -253,6 +267,7 @@
                 this.pushSrpgBattler(targetType, target);
                 if (i === 0) user.action(0).setTarget(0);
             }
+            if (!this.counterModeValid(targetEvents[i])) continue;
             if (userType !== targetType && target.canMove() && !user.currentAction().item().meta.srpgUncounterable) {
                 target.srpgMakeNewActions();
                 if (targetType === 'enemy') {
@@ -265,6 +280,7 @@
                 target.setAoEDistance(distance);
                 target.action(0).setTarget(0);
                 target.setActionTiming(1);
+                if (_counterMode === 'first' && target.canUse(item)) this._counterCount -= 1;
             }
         }
 
@@ -318,13 +334,15 @@
 
         // queue the action
         this.srpgAddMapSkill(action, user, target);
-
         // queue up counterattack
+        if (!this.counterModeValid($gameTemp.targetEvent())) return;
         if (userArray[0] !== targetArray[0] && target.canMove() && !action.item().meta.srpgUncounterable) {
             target.srpgMakeNewActions();
             reaction = target.action(0);
             reaction.setSubject(target);
             reaction.setAttack();
+            //console.log(target.canUse(reaction.item()));
+            if (_counterMode === 'first' && target.canUse(reaction.item())) this._counterCount -= 1;
             var actFirst = (reaction.speed() > action.speed());
             // move the agi attack plus here as it also need to check: userArray[0] !== targetArray[0] && target.canMove() && !action.item().meta.srpgUncounterable
             this.srpgAgiAttackPlus(user, target, reaction, actFirst);
@@ -364,6 +382,24 @@
         }
     }
 
+    Scene_Map.prototype.counterModeValid = function(target){
+        if (_counterMode === 'center' && $gameTemp._activeAoE && target.distTo($gameTemp.areaX(), $gameTemp.areaY()) !== 0) return false;
+        if (_counterMode === 'false') return false;
+        if (_counterMode === 'first' && this._counterCount <= 0) return false;
+        return true;
+    }
+
+    var _Scene_Map_srpgInvokeAutoUnitAction = Scene_Map.prototype.srpgInvokeAutoUnitAction;
+    Scene_Map.prototype.srpgInvokeAutoUnitAction = function() {
+        this._counterCount = 1;
+        _Scene_Map_srpgInvokeAutoUnitAction.call(this);
+    }
+
+    var _Scene_Map_commandBattleStart = Scene_Map.prototype.commandBattleStart
+    Scene_Map.prototype.commandBattleStart = function() {
+        this._counterCount = 1;
+        _Scene_Map_commandBattleStart.call(this);
+    }
 //============================================================================================
 //Override these functions to support AoEAnimation
 //============================================================================================
