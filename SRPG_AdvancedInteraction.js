@@ -511,6 +511,9 @@
     Scene_Map.prototype.srpgAfterAction = function() {
         if ($gameSystem.srpgInteractionType() !== 'wrap'){
             _Scene_Map_srpgAfterAction.call(this);
+        } else{
+            $gameSystem.setBattlePhase('actor_phase');
+            $gameSystem.setSubBattlePhase('actor_Interaction');
         }
     };
 
