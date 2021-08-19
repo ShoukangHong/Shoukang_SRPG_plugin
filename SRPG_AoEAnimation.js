@@ -383,7 +383,8 @@
     }
 
     Scene_Map.prototype.counterModeValid = function(target){
-        if (_counterMode === 'center' && $gameTemp._activeAoE && target.distTo($gameTemp.areaX(), $gameTemp.areaY()) !== 0) return false;
+        if (!$gameTemp._activeAoE) return true;
+        if (_counterMode === 'center' && target.distTo($gameTemp.areaX(), $gameTemp.areaY()) !== 0) return false;
         if (_counterMode === 'false') return false;
         if (_counterMode === 'first' && this._counterCount <= 0) return false;
         return true;
