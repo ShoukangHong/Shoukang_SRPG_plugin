@@ -1,7 +1,7 @@
 //=============================================================================
 //SRPG_AoEAnimation.js
 // recent updates: fix a bug caused by max party member, fix the bug of sprite priority in battle.
-// v 1.01 add counter attack mode!
+// v 1.01 add 4 counter attack modes!
 //=============================================================================
 /*:
  * @plugindesc Allows AoE skills to show once when targetting multiple targets. Requires SRPG_AoE. This is a modified version by Shoukang
