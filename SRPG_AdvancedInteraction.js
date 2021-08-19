@@ -4,7 +4,7 @@
 // free to use and edit     v1.04 include a way to cast wrap skill!
 //====================================================================================================================
 /*:
- * @plugindesc Add Advanced interaction for SRPG battle. Add a way to cast warp skill.
+ * @plugindesc Add Advanced interaction for SRPG battle.
  * @author Shoukang
  *
  * @param default no interaction
@@ -524,6 +524,18 @@
         $gameTemp.setResetMoveList(true);
     }
 
+    if (!Game_Map.prototype.positionIsOpen){
+        Game_Map.prototype.positionIsOpen = function(x, y) {
+            return this.events().every(function(event) {
+                if (event.isErased() || !event.pos(x, y) || !event.isType()) return true;
+                if (event.isType() === 'actor') return false;
+                if (event.isType() === 'enemy') return false;
+                if (event.isType() === 'object' && event.characterName() !== '') return false;
+                if (event.isType() === 'playerEvent') return false;
+                return true;
+            });
+        };
+    }
     // Game_Character.prototype.setSelected = function(val){
     //     this._isSelected = val;
     // }
