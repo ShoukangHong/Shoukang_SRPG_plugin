@@ -13,6 +13,9 @@ https://forums.rpgmakerweb.com/index.php?threads/srpg-engine-plugins-for-creatin
 ![](https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/demo%20adv%20interaction.gif)
 ![](https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/demo%20adv%20interaction-wrap.gif)
 
+## Terrain Effect Window
+![](https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/demo%20terrain%20effect%20window.gif)
+
 ## Move Method
 ![](https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/demo%20move%20method.gif)
 
