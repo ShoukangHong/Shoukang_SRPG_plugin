@@ -1,4 +1,4 @@
-﻿//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // SRPG_DynamicAction.js
 // Copyright (c) 2020 SRPG Team. All rights reserved. Shoukang Fixed version
 // Released under the MIT license.
@@ -260,6 +260,7 @@ Scene_Map.prototype.srpgInvokeMapSkill = function(data) {
         var targetsEventId = undefined;
         //aoe
         if (user.event() == $gameTemp.activeEvent() && !action.hideAnimation) {
+            $gameTemp.setShouldPayCost(false);
             targetsEventId = makeTargetsEventIdInArea($gameTemp.originalAreaTargets(), target, data.count);
         } else if (!action.hideAnimation){ // not AoE
             targetsEventId = [target.event().eventId()];
