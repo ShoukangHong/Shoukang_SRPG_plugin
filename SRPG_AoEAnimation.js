@@ -45,6 +45,7 @@
  * @option No AoE counter
  * @value false
  * @default all
+ *
  * @help
  * ===================================================================================================
  * Compatibility:
@@ -558,21 +559,21 @@
     var _Game_Actor_srpgSkillMinRange = Game_Actor.prototype.srpgSkillMinRange
     Game_Actor.prototype.srpgSkillMinRange = function(skill) {
         var range = _Game_Actor_srpgSkillMinRange.call(this, skill);
-        if (this.AoEDistance() !== undefined) return this.AoEDistance() >= range ? -1 : $gameTemp.SrpgDistance() ;
+        if (this.AoEDistance() !== undefined) return this.AoEDistance() >= range ? -1 : 99;
         else return range;
     };
 
     var _Game_Enemy_srpgSkillMinRange = Game_Enemy.prototype.srpgSkillMinRange
     Game_Enemy.prototype.srpgSkillMinRange = function(skill) {
         var range = _Game_Enemy_srpgSkillMinRange.call(this, skill);
-        if (this.AoEDistance() !== undefined) return this.AoEDistance() >= range ? -1 : $gameTemp.SrpgDistance();
+        if (this.AoEDistance() !== undefined) return this.AoEDistance() >= range ? -1 : 99;
         else return range;
     };
 
     var _Game_Actor_srpgSkillRange = Game_Actor.prototype.srpgSkillRange
     Game_Actor.prototype.srpgSkillRange = function(skill) {
         var range = _Game_Actor_srpgSkillRange.call(this, skill);
-        if (this.AoEDistance() !== undefined) return this.AoEDistance() > range ? -1 : $gameTemp.SrpgDistance();
+        if (this.AoEDistance() !== undefined) return this.AoEDistance() > range ? -1 : 99;
         else return range;
     };
 
@@ -580,7 +581,7 @@
     Game_Enemy.prototype.srpgSkillRange = function(skill) {
         var range = _Game_Enemy_srpgSkillRange.call(this, skill);
         //console.log(this, range)
-        if (this.AoEDistance() !== undefined) return this.AoEDistance() > range ? -1 : $gameTemp.SrpgDistance();
+        if (this.AoEDistance() !== undefined) return this.AoEDistance() > range ? -1 : 99;
         else return range;
     };
 
@@ -642,7 +643,6 @@
     //add check for whether AoE map battle is finished.
     Scene_Map.prototype.processSrpgVictory = function() {
         var members = $gameParty.battleMembers();
-        var battler = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]
         if (this.canMakeRewards()) {
             this.makeRewards();
             if (this.hasRewards()) {
