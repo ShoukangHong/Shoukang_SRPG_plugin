@@ -1,7 +1,8 @@
 //=============================================================================
 // SRPG_ShowAoERange.js
 //-----------------------------------------------------------------------------
-//Free to use and edit    v.1.02 add range of default srpg attack skill. Support loop map.
+//Free to use and edit    v.1.03 Improved algorithm, no it's much faster!
+// Complexity change from O(m^2 * r^2 * a^2 * 4^3) to O((m + r)^2 * a^2 * 4^2), much faster!
 //=============================================================================
 /*:
  * @plugindesc The original attack range only shows the enemy/actor's default skill range.
@@ -29,6 +30,8 @@
  * will be colored differently.
  * ====================================================================================================
  * to do: improve algorithm. Now the worst case complexity is O(move^2 range^2 * AoeRange^2 * skillNumber)
+ * v.1.03 Improved algorithm, no it's much faster!
+ * Complexity change from O(m^2 * r^2 * a^2 * 4^3) to O((m + r)^2 * a^2 * 4^2) !
  * v 1.02 add range of default srpg attack skill. Support loop map.
  * v 1.01 now it will check skill stype, seal, etc.
  * v 1.00 first release!
@@ -40,13 +43,21 @@
 	var parameters = PluginManager.parameters('SRPG_ShowAoERange');
 	var _AoEColor = parameters['AoE Color'] || "MediumVioletRed";
 	var _showActorAoE = !!eval(parameters['show actor AoE']) || false;
-
+	var _noDirectionShape = {
+		circle : true,
+		square : true,
+		cross : true,
+		plus : true,
+		star : true,
+		checker : true
+	}
 //In actor phase, show range and AoE range of all skills
 	var _shoukangSrpgMakeMoveTable = Game_System.prototype.srpgMakeMoveTable;
 	Game_System.prototype.srpgMakeMoveTable = function(event) {
 		if (!$gameMap.isEventRunning() && ($gameSystem.isBattlePhase() === 'actor_phase' &&
-		   $gameSystem.isSubBattlePhase() === 'normal' || $gameSystem.isBattlePhase() === 'battle_prepare')){
+		$gameSystem.isSubBattlePhase() === 'normal' || $gameSystem.isBattlePhase() === 'battle_prepare')){
 			var user = $gameSystem.EventToUnit(event.eventId())[1];
+		    $gameTemp.makeSearchedAoETable();
 			$gameTemp.clearMoveTable();
 			event.makeMoveTable(event.posX(), event.posY(), user.srpgMove(), null, user.srpgThroughTag());
 			user.skills().forEach(function(item){//all skills
@@ -54,7 +65,7 @@
 				var range = user.srpgSkillRange(item);
 				var areaRange = Number(item.meta.srpgAreaRange) || 0;
 				var minRange = Number(item.meta.srpgAreaMinRange) || 0;
-				var shape = item.meta.srpgAreaType || '';
+				var shape = item.meta.srpgAreaType || 'circle';
 				var canDrawAoE = event.canDrawAoE(areaRange);
 
 				$gameTemp.moveList().some(function(pos) {//all reachable tiles
@@ -101,21 +112,23 @@
 				forward[10-d] = 1;
 				if (drange > 0) edges.push([dx, dy, drange, route, forward]);
 				if ($gameMap.distTo(x, y, dx, dy) >= minRange && this.srpgRangeExtention(dx, dy, x,	y, skill, range)) {
-					if ($gameTemp.RangeTable(dx, dy)[0] < 0 || $gameTemp.RangeTable(dx, dy)[1] === 'AoE') {
-						$gameTemp.setRangeTable(dx, dy, drange, route);
-						if ($gameTemp.MoveTable(dx, dy)[0] < 0) {
-							$gameTemp.pushRangeList([dx, dy, true]);
-						}
-					}
-					$gameTemp.setAoETable(dx, dy, areaRange, areaminRange, shape, d);
+					$gameTemp.setAoETable(dx, dy, areaRange, areaminRange, shape, d, skill, drange, route);
 				}
 			}
 		}
 	};
 
-
 //if AoE is in area set attack flag as 'AoE' (AoE)
-	Game_Temp.prototype.setAoETable = function(dx, dy, aMax, aMin, shape, d) {
+	Game_Temp.prototype.setAoETable = function(dx, dy, aMax, aMin, shape, d, skill, drange, route) {
+		if (this.isAoESearched(dx, dy, skill, d, shape)) return;
+		$gameTemp.setAoESearched(dx, dy, skill, d, shape);
+		if (this.RangeTable(dx, dy)[0] < 0 || this.RangeTable(dx, dy)[1] === 'AoE') {
+			this.setRangeTable(dx, dy, drange, route);
+			if (this.MoveTable(dx, dy)[0] < 0) {
+				this.pushRangeList([dx, dy, true]);
+			}
+		}
+
 		var width = $gameMap.width();
 		var height = $gameMap.height();
 		var rlim = 1 + aMax * 2;
@@ -125,11 +138,36 @@
 				var aoey = dy + n - aMax;
 				if ($gameMap.isLoopVertical()) aoex = ((aoex % width) + width) % width;
 				if ($gameMap.isLoopHorizontal()) aoey = ((aoey % height) + height) % height;
-				if ( $gameMap.isValid(aoex, aoey) && this.RangeTable(aoex, aoey)[0] < 0 && 
+				if ($gameMap.isValid(aoex, aoey) && this.RangeTable(aoex, aoey)[0] < 0 && 
 					$gameMap.inArea(m-aMax, n-aMax, aMax, aMin, shape, d)) {
 					this.setRangeTable(aoex, aoey, - 1, 'AoE');
 				}
 			}
+		}
+	};
+
+    Game_Temp.prototype.makeSearchedAoETable = function(){
+    	this._searchedAoETable = [];
+        for (var i = 0; i < $dataMap.width; i++) {
+          var vartical = [];
+          for (var j = 0; j < $dataMap.height; j++) {
+            vartical[j] = [-1,-1,-1,-1];
+          }
+          this._searchedAoETable[i] = vartical;
+        }
+        //console.log(this._searchedAoETable)
+    }
+
+	Game_Temp.prototype.isAoESearched = function(dx, dy, skill, d, shape) {
+		return this._searchedAoETable[dx][dy][d/2 - 1] === skill.id;
+	};
+
+	Game_Temp.prototype.setAoESearched = function(dx, dy, skill, d, shape) {
+		var id = skill.id
+		if (_noDirectionShape[shape]){
+			this._searchedAoETable[dx][dy] = [id, id, id, id];
+		} else {
+			this._searchedAoETable[dx][dy][d/2 - 1] = id;
 		}
 	};
 
