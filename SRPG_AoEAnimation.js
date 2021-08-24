@@ -423,7 +423,7 @@
             var allEvents = [activeEvent, targetEvent].concat($gameTemp.getAreaEvents());
             $gameTemp.clearAreaTargets();
 
-            for (var i in allEvents){
+            for (var i = 0; i < allEvents.length; i++){
                 var event = allEvents[i];
                 var battler = $gameSystem.EventToUnit(event.eventId())[1];
                 battler.clearAoEDistance();
@@ -437,7 +437,7 @@
                 }
             }
         } else{
-            $gameTemp.clearArea();
+            //$gameTemp.clearArea();
             $gameSystem.EventToUnit(activeEvent.eventId())[1].clearAoEDistance();
             $gameSystem.EventToUnit(targetEvent.eventId())[1].clearAoEDistance();
             _Scene_Map_srpgBattlerDeadAfterBattle.call(this);
