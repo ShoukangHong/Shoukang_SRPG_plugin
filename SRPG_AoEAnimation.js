@@ -165,8 +165,8 @@
             var param = $gameTemp._aoePositionParameters;
             for (var i = 0; i < this.SrpgBattleEnemys().length; i++) {
                 var battler = this.SrpgBattleEnemys()[i];
-                battler.setScreenXy(eval(_standardX) + (battler.aoeX - param.midX) * param.amplifyX,
-                                    eval(_standardY) + (battler.aoeY - param.midY) * param.amplifyY);
+                battler.setScreenXy(eval(_standardX) + (battler.aoeSceneX() - param.midX) * param.amplifyX,
+                                    eval(_standardY) + (battler.aoeSceneY() - param.midY) * param.amplifyY);
                 this._enemies.push(battler);
             }
             this.makeUniqueNames();
@@ -219,11 +219,11 @@
     }
 
     Game_Battler.prototype.aoeSceneX = function(){
-        return this._aoeScene
+        return this._aoeSceneX;
     }
 
     Game_Battler.prototype.aoeSceneY = function(){
-        return this._aoeSceneY
+        return this._aoeSceneY;
     }
 
     Game_Temp.prototype.setAoEPositionParameters = function(midX, midY, amplifyX, amplifyY){
