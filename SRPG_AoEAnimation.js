@@ -1,6 +1,6 @@
 //=============================================================================
 //SRPG_AoEAnimation.js
-// recent updates: Now Map battle behaves the same as Scene battle.
+// recent updates: Fixed some bugs
 // Use my bug fix patch! Especially the SRPG_DynamicAction, the map AoE battle will work amazingly good!
 // Download here https://github.com/ShoukangHong/Shoukang_SRPG_plugin/tree/main/BugFixPatch
 //=============================================================================
@@ -84,6 +84,7 @@
  * ===================================================================================================
  * Credits to: Dopan, Dr. Q, Traverse, SoulPour777
  * ===================================================================================================
+ * v 1.03 fixed some bugs
  * v 1.02 Change battle result window to fit for more reward items.
  *        Fix a bug that counter attack don't stop when active battler is dead.
  *        Map view AoE now behaves the same as Scene battle, which means: 1. AoE Animation cast simultaniusly no matter it's
