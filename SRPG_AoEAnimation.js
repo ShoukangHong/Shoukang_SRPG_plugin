@@ -1,7 +1,7 @@
 //=============================================================================
 //SRPG_AoEAnimation.js
 // recent updates: Now Map battle behaves the same as Scene battle.
-// Need my bug fix patch! Especially the SRPG_DynamicAction. 
+// Use my bug fix patch! Especially the SRPG_DynamicAction, the map AoE battle will work amazingly good!
 // Download here https://github.com/ShoukangHong/Shoukang_SRPG_plugin/tree/main/BugFixPatch
 //=============================================================================
 /*:
@@ -46,20 +46,19 @@
  * @value false
  * @default all
  * @help
- * Credits to: Dopan, Dr. Q, Traverse, SoulPour777
  * ===================================================================================================
  * Compatibility:
  * Need SRPG_AoE, and place this plugin below it.
- * Need my bug fix patch! Especially the SRPG_DynamicAction!!!
+ * Strongly recommend to use my bug fix patch! Especially the SRPG_DynamicAction, the map AoE battle will work amazingly good!
  * Download here https://github.com/ShoukangHong/Shoukang_SRPG_plugin/tree/main/BugFixPatch
  * ===================================================================================================
  * When an AoE spell is cast and more than 1 target is selected ($gameTemp.areaTargets), each target is added to a queue and then the game will execute each battle individually 1 on 1
  * This script will collect all targets and add them into one battle for a 1 vs many scenario
  * Works best with animations set to SCREEN though animations that target individuals still work (they just happened sequentially on the same battle field)
  *
- * Some AoE rules in this plugin: 
- * 1. AoE cannot do AgiAttack, even if you set the double action notetag to true.
- * 2. If an enemy cast AoE to actors, the battle exp will be shared by all actors in battle equally.
+ * AoE rules in this plugin:
+ * 1. If an enemy cast AoE to actors, the battle exp will be shared by all actors in battle equally.
+ * 2. If you use AGI attack, AoE skill will hit every target first, then targets will do counter attacks.
  *
  * Important Tips:
  * With this plugin, it's necessary to set skill target to all enemies/friends to make AoEs work properly.
@@ -81,6 +80,8 @@
  * [ . . .]                                 [ T . .]                     [ . . T]
  *
  * The placement will automatically adjust battlers' distance to make them reasonable.(within the defined x and y range)
+ * ===================================================================================================
+ * Credits to: Dopan, Dr. Q, Traverse, SoulPour777
  * ===================================================================================================
  * v 1.02 Change battle result window to fit for more reward items.
  *        Fix a bug that counter attack don't stop when active battler is dead.
@@ -111,17 +112,42 @@
     var _srpgBattleExpRateForActors = Number(coreParameters['srpgBattleExpRateForActors'] || 0.1);
     var _rewardSe = coreParameters['rewardSound'] || 'Item3';
     var _expSe = coreParameters['expSound'] || 'Up4';
+
 //============================================================================================
 //Battler position in AoE(when there are areaTargets) scene battle 
 //============================================================================================
+    // remove actor sprite limit
+    var _Spriteset_Battle_createActors = Spriteset_Battle.prototype.createActors
+    Spriteset_Battle.prototype.createActors = function() {
+        if ($gameSystem.isSRPGMode() && $gameTemp.areaTargets().length > 0){
+            this._actorSprites = [];
+            for (var i = 0; i < $gameParty.SrpgBattleActors().length; i++) {
+                this._actorSprites[i] = new Sprite_Actor();
+                this._battleField.addChild(this._actorSprites[i]);
+            }          
+        } else{
+            _Spriteset_Battle_createActors.call(this);
+        }
+    };
+
+    //sort to get priority right
+    var _Spriteset_Battle_createLowerLayer = Spriteset_Battle.prototype.createLowerLayer;
+    Spriteset_Battle.prototype.createLowerLayer = function() {
+        _Spriteset_Battle_createLowerLayer.call(this);
+        this._battleField.removeChild(this._back1Sprite);
+        this._battleField.removeChild(this._back2Sprite);
+        this._battleField.children.sort(this.compareEnemySprite.bind(this));
+        this._battleField.addChildAt(this._back2Sprite, 0);
+        this._battleField.addChildAt(this._back1Sprite, 0);
+    };
 
     var _SRPG_Sprite_Actor_setActorHome = Sprite_Actor.prototype.setActorHome;
     Sprite_Actor.prototype.setActorHome = function (index) {
         if ($gameSystem.isSRPGMode() == true && !$gameSystem.useMapBattle() && $gameTemp.areaTargets().length > 0) {
             var param = $gameTemp._aoePositionParameters;
             var battler = this._battler;
-            this.setHome(eval(_standardX) + (battler.aoeX - param.midX) * param.amplifyX,
-                         eval(_standardY) + (battler.aoeY - param.midY) * param.amplifyY);
+            this.setHome(eval(_standardX) + (battler.aoeSceneX() - param.midX) * param.amplifyX,
+                         eval(_standardY) + (battler.aoeSceneY() - param.midY) * param.amplifyY);
             this.moveToStartPosition();
         } else {
             _SRPG_Sprite_Actor_setActorHome.call(this, index);
@@ -187,8 +213,16 @@
     }
 
     Game_Battler.prototype.setAoEScenePosition = function(x, y){
-        this.aoeX = x;
-        this.aoeY = y;
+        this._aoeSceneX = x;
+        this._aoeSceneY = y;
+    }
+
+    Game_Battler.prototype.aoeSceneX = function(){
+        return this._aoeScene
+    }
+
+    Game_Battler.prototype.aoeSceneY = function(){
+        return this._aoeSceneY
     }
 
     Game_Temp.prototype.setAoEPositionParameters = function(midX, midY, amplifyX, amplifyY){
@@ -231,24 +265,6 @@
         } else {
             this.processMapBattle(userArray, targetArray)
         }
-    };
-
-//helper function
-    Scene_Map.prototype.pushSrpgBattler = function(type, battler){
-        if (type === 'actor') $gameParty.pushSrpgBattleActors(battler);
-        else if (type === 'enemy') {
-            $gameTroop.pushSrpgBattleEnemys(battler);
-            $gameTroop.pushMembers(battler);
-        }
-    }
-
-//helper function
-    Game_Temp.prototype.getAreaEvents = function() {
-        events = []
-        for (var i = 0; i < this._areaTargets.length; i ++ ) {
-            if (this._areaTargets[i].event) events.push(this._areaTargets[i].event);
-        }
-        return events;
     };
 
 //Scene Battle that take area targets into consideration
@@ -308,7 +324,7 @@
         }
         this._callSrpgBattle = true;
         this.eventBeforeBattle();
-    }
+    };
 
 
 //shoukang: slightly edited from _srpgBattleStart_MB for agi attack plus future improvement.
@@ -340,19 +356,8 @@
             this.pushSrpgBattler(userArray[0], userArray[1]);
             action.setSubject(user);
             var addActionTimes = Number(action.item().meta.addActionTimes || 0);
-            if (addActionTimes > 0) {
-                user.SRPGActionTimesAdd(addActionTimes);
-            }
-            var hiddenAction = new Game_Action(user);
-            hiddenAction.setItemObject(action.item());
-            hiddenAction.hideAnimation = true;
-            for (var i = 0; i < targetEvents.length; i++) {
-                var targetA = $gameSystem.EventToUnit(targetEvents[i].eventId());
-                var act = (i < 1 ? action : hiddenAction);
-                this.pushSrpgBattler(targetA[0], targetA[1]);
-                //console.log(userArray[0], userArray[1], targetA[0], targetA[1])
-                this.srpgAddMapSkill(act, user, targetA[1]);
-            }
+            this.pushSrpgAllTargets(targetEvents);
+            this.addSkillToAllTargets(action, user, targetEvents);
         }
         // queue the action
         // queue up counterattack
@@ -368,13 +373,12 @@
             if (_counterMode === 'first' && target.canUse(reaction.item())) this._counterCount -= 1;
             var actFirst = (reaction.speed() > action.speed());
             // move the agi attack plus here as it also need to check: userArray[0] !== targetArray[0] && target.canMove() && !action.item().meta.srpgUncounterable
-            this.srpgAgiAttackPlus(user, target, reaction, actFirst);
+            this.srpgAgiAttackPlus(user, target, reaction, actFirst, targetEvents);
         }
     }
 
-
 // edit this function for Agiattack plus plugin
-    Scene_Map.prototype.srpgAgiAttackPlus = function(user, target, reaction, actFirst){
+    Scene_Map.prototype.srpgAgiAttackPlus = function(user, target, reaction, actFirst, targetEvents){
         if (_srpgUseAgiAttackPlus == 'true') actFirst = false;
         this.srpgAddMapSkill(reaction, target, user, actFirst);//action, user, target, addToFront
         if (_srpgUseAgiAttackPlus != 'true') return;
@@ -399,128 +403,14 @@
             }
             if (agilityRate > Math.randomInt(100)) {
                 var agiAction = firstBattler.action(0);
-                this.srpgAddMapSkill(agiAction, firstBattler, secondBattler)
+                if ($gameTemp.isFirstAction() && firstBattler == user){
+                    this.addSkillToAllTargets(agiAction, firstBattler, targetEvents);
+                } else if (firstBattler == target) {
+                    this.srpgAddMapSkill(agiAction, firstBattler, secondBattler);
+                }
             }
         }
     }
-
-    Game_Action.prototype.canAgiAttack = function(action){
-        return this.isForOpponent() && !this.item().meta.doubleAction && this.area() <= 0;
-    }
-
-    Scene_Map.prototype.counterModeValid = function(target){
-        if (!$gameTemp._activeAoE) return true;
-        if (_counterMode === 'center' && target.distTo($gameTemp.areaX(), $gameTemp.areaY()) !== 0) return false;
-        if (_counterMode === 'false') return false;
-        if (_counterMode === 'first' && this._counterCount <= 0) return false;
-        return true;
-    }
-
-    var _Scene_Map_srpgInvokeAutoUnitAction = Scene_Map.prototype.srpgInvokeAutoUnitAction;
-    Scene_Map.prototype.srpgInvokeAutoUnitAction = function() {
-        this._counterCount = 1;
-        _Scene_Map_srpgInvokeAutoUnitAction.call(this);
-    }
-
-    var _Scene_Map_commandBattleStart = Scene_Map.prototype.commandBattleStart
-    Scene_Map.prototype.commandBattleStart = function() {
-        this._counterCount = 1;
-        _Scene_Map_commandBattleStart.call(this);
-    }
-//============================================================================================
-//Override these functions to support AoEAnimation
-//============================================================================================
-    // remove actor sprite limit
-    var _Spriteset_Battle_createActors = Spriteset_Battle.prototype.createActors
-    Spriteset_Battle.prototype.createActors = function() {
-        if ($gameSystem.isSRPGMode() && $gameTemp.areaTargets().length > 0){
-            this._actorSprites = [];
-            for (var i = 0; i < $gameParty.SrpgBattleActors().length; i++) {
-                this._actorSprites[i] = new Sprite_Actor();
-                this._battleField.addChild(this._actorSprites[i]);
-            }          
-        } else{
-            _Spriteset_Battle_createActors.call(this);
-        }
-    };
-
-    Game_Battler.prototype.setAoEDistance = function(val){
-        this._AoEDistance = val;
-    }
-
-    Game_Battler.prototype.AoEDistance = function(){
-        return this._AoEDistance;
-    }
-
-    Game_Battler.prototype.clearAoEDistance = function(){
-        this._AoEDistance = undefined;
-    }
-
-    //A hack way to get skill correct.
-    var _Game_Actor_srpgSkillMinRange = Game_Actor.prototype.srpgSkillMinRange
-    Game_Actor.prototype.srpgSkillMinRange = function(skill) {
-        var range = _Game_Actor_srpgSkillMinRange.call(this, skill);
-        if (this.AoEDistance() !== undefined) return this.AoEDistance() >= range ? -1000 : 1000;
-        else return range;
-    };
-
-    var _Game_Enemy_srpgSkillMinRange = Game_Enemy.prototype.srpgSkillMinRange
-    Game_Enemy.prototype.srpgSkillMinRange = function(skill) {
-        var range = _Game_Enemy_srpgSkillMinRange.call(this, skill);
-        if (this.AoEDistance() !== undefined) return this.AoEDistance() >= range ? -1000 : 1000;
-        else return range;
-    };
-
-    var _Game_Actor_srpgSkillRange = Game_Actor.prototype.srpgSkillRange
-    Game_Actor.prototype.srpgSkillRange = function(skill) {
-        var range = _Game_Actor_srpgSkillRange.call(this, skill);
-        if (this.AoEDistance() !== undefined) return this.AoEDistance() > range ? -1000 : 1000;
-        else return range;
-    };
-
-    var _Game_Enemy_srpgSkillRange = Game_Enemy.prototype.srpgSkillRange
-    Game_Enemy.prototype.srpgSkillRange = function(skill) {
-        var range = _Game_Enemy_srpgSkillRange.call(this, skill);
-        //console.log(this, range)
-        if (this.AoEDistance() !== undefined) return this.AoEDistance() > range ? -1000 : 1000;
-        else return range;
-    };
-
-    //sort to get priority right
-    var _Spriteset_Battle_createLowerLayer = Spriteset_Battle.prototype.createLowerLayer;
-    Spriteset_Battle.prototype.createLowerLayer = function() {
-        _Spriteset_Battle_createLowerLayer.call(this);
-        this._battleField.removeChild(this._back1Sprite);
-        this._battleField.removeChild(this._back2Sprite);
-        this._battleField.children.sort(this.compareEnemySprite.bind(this));
-        this._battleField.addChildAt(this._back2Sprite, 0);
-        this._battleField.addChildAt(this._back1Sprite, 0);
-    };
-
-    // shoukang rewrite to give a clearer logic
-    Scene_Battle.prototype.createSprgBattleStatusWindow = function() {
-        this._srpgBattleStatusWindowLeft = new Window_SrpgBattleStatus(0);
-        this._srpgBattleStatusWindowRight = new Window_SrpgBattleStatus(1);
-        this._srpgBattleStatusWindowLeft.openness = 0;
-        this._srpgBattleStatusWindowRight.openness = 0;
-        if (!$gameSystem.isSRPGMode()) return;
-        userArray = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId());
-        targetArray = $gameSystem.EventToUnit($gameTemp.targetEvent().eventId());
-
-        if (userArray[0] === 'actor') {
-            this._srpgBattleStatusWindowRight.setBattler(userArray[1]);
-            var targetWindow = this._srpgBattleStatusWindowLeft
-        } else {
-            this._srpgBattleStatusWindowLeft.setBattler(userArray[1]);
-            var targetWindow = this._srpgBattleStatusWindowRight
-        }
-        if (userArray[1] !== targetArray[1]){
-            targetWindow.setBattler(targetArray[1])
-        }
-        this.addWindow(this._srpgBattleStatusWindowLeft);
-        this.addWindow(this._srpgBattleStatusWindowRight);
-        BattleManager.setSrpgBattleStatusWindow(this._srpgBattleStatusWindowLeft, this._srpgBattleStatusWindowRight);
-    };
 
     var _Scene_Map_srpgBattlerDeadAfterBattle = Scene_Map.prototype.srpgBattlerDeadAfterBattle;
     Scene_Map.prototype.srpgBattlerDeadAfterBattle = function() {
@@ -546,13 +436,178 @@
                 }
             }
         } else{
+            $gameTemp.clearArea();
             $gameSystem.EventToUnit(activeEvent.eventId())[1].clearAoEDistance();
             $gameSystem.EventToUnit(targetEvent.eventId())[1].clearAoEDistance();
             _Scene_Map_srpgBattlerDeadAfterBattle.call(this);
         }
     };
 
-    //calculate exp in AoE 
+    Scene_Map.prototype.addSkillToAllTargets = function(action, user, targetEvents){
+        var hiddenAction = action.createAoERepeatedAction();
+        //console.log(hiddenAction)
+        for (var i = 0; i < targetEvents.length; i++) {
+            var targetArray = $gameSystem.EventToUnit(targetEvents[i].eventId());
+            var act = (i < 1 ? action : hiddenAction);
+            //console.log(userArray[0], userArray[1], targetA[0], targetA[1])
+            this.srpgAddMapSkill(act, user, targetArray[1]);
+        }
+    }
+
+    //helper function
+    Scene_Map.prototype.pushSrpgAllTargets = function(targetEvents){
+        for (var i = 0; i < targetEvents.length; i++) {
+            var targetArray = $gameSystem.EventToUnit(targetEvents[i].eventId());
+            this.pushSrpgBattler(targetArray[0], targetArray[1]);
+        }
+    }
+
+    //helper function
+    Scene_Map.prototype.pushSrpgBattler = function(type, battler){
+        if (type === 'actor') $gameParty.pushSrpgBattleActors(battler);
+        else if (type === 'enemy') {
+            $gameTroop.pushSrpgBattleEnemys(battler);
+            $gameTroop.pushMembers(battler);
+        }
+    }
+    // counter mode for AoE
+    Scene_Map.prototype.counterModeValid = function(target){
+        if (!$gameTemp._activeAoE) return true;
+        if (_counterMode === 'center' && target.distTo($gameTemp.areaX(), $gameTemp.areaY()) !== 0) return false;
+        if (_counterMode === 'false') return false;
+        if (_counterMode === 'first' && this._counterCount <= 0) return false;
+        return true;
+    }
+
+    var _Scene_Map_srpgInvokeAutoUnitAction = Scene_Map.prototype.srpgInvokeAutoUnitAction;
+    Scene_Map.prototype.srpgInvokeAutoUnitAction = function() {
+        this._counterCount = 1;
+        _Scene_Map_srpgInvokeAutoUnitAction.call(this);
+    }
+
+    var _Scene_Map_commandBattleStart = Scene_Map.prototype.commandBattleStart
+    Scene_Map.prototype.commandBattleStart = function() {
+        this._counterCount = 1;
+        _Scene_Map_commandBattleStart.call(this);
+    }
+
+    //helper function
+    Game_Temp.prototype.getAreaEvents = function() {
+        events = []
+        for (var i = 0; i < this._areaTargets.length; i ++ ) {
+            if (this._areaTargets[i].event) events.push(this._areaTargets[i].event);
+        }
+        return events;
+    };
+
+// ==========================================================================
+// repeated AoE action that doesn't show animation and doesn't cost tp, mp
+// ==========================================================================
+    Game_Action.prototype.setHideAnimation = function(val){
+        this._hideAnimation = val;
+    }
+    //only work with my bugfixed srpg_DynamicAction
+    Game_Action.prototype.isHideAnimation = function(){
+        return this._hideAnimation;
+    }
+
+    Game_Action.prototype.setEditedItem = function(item){
+        this._editedItem = item;
+    }    
+
+    // set up Action that and item that has no animation and no cost for repetation
+    Game_Action.prototype.createAoERepeatedAction = function(){
+        var hiddenAction = new Game_Action(this.subject());
+        var noCostItem = {
+            ...this.item()
+        }
+        noCostItem.mpCost = 0;
+        noCostItem.tpCost = 0;
+        hiddenAction.setItemObject(this.item());
+        hiddenAction.setEditedItem(noCostItem);
+        hiddenAction.setHideAnimation(true);
+        return hiddenAction;
+    }    
+
+    var _Game_Action_item = Game_Action.prototype.item;
+    Game_Action.prototype.item = function() {
+        if (this._editedItem) return this._editedItem;
+        return _Game_Action_item.call(this);
+    };
+
+    Game_Action.prototype.canAgiAttack = function(action){
+        return this.isForOpponent() && !this.item().meta.doubleAction;
+    }
+
+//============================================================================================
+//A hack way to get AoE counter attack distance correct.
+//============================================================================================
+    Game_Battler.prototype.setAoEDistance = function(val){
+        this._AoEDistance = val;
+    }
+
+    Game_Battler.prototype.AoEDistance = function(){
+        return this._AoEDistance;
+    }
+
+    Game_Battler.prototype.clearAoEDistance = function(){
+        this._AoEDistance = undefined;
+    }
+
+    //A hack way to get skill correct.
+    var _Game_Actor_srpgSkillMinRange = Game_Actor.prototype.srpgSkillMinRange
+    Game_Actor.prototype.srpgSkillMinRange = function(skill) {
+        var range = _Game_Actor_srpgSkillMinRange.call(this, skill);
+        if (this.AoEDistance() !== undefined) return this.AoEDistance() >= range ? -1 : $gameTemp.SrpgDistance() ;
+        else return range;
+    };
+
+    var _Game_Enemy_srpgSkillMinRange = Game_Enemy.prototype.srpgSkillMinRange
+    Game_Enemy.prototype.srpgSkillMinRange = function(skill) {
+        var range = _Game_Enemy_srpgSkillMinRange.call(this, skill);
+        if (this.AoEDistance() !== undefined) return this.AoEDistance() >= range ? -1 : $gameTemp.SrpgDistance();
+        else return range;
+    };
+
+    var _Game_Actor_srpgSkillRange = Game_Actor.prototype.srpgSkillRange
+    Game_Actor.prototype.srpgSkillRange = function(skill) {
+        var range = _Game_Actor_srpgSkillRange.call(this, skill);
+        if (this.AoEDistance() !== undefined) return this.AoEDistance() > range ? -1 : $gameTemp.SrpgDistance();
+        else return range;
+    };
+
+    var _Game_Enemy_srpgSkillRange = Game_Enemy.prototype.srpgSkillRange
+    Game_Enemy.prototype.srpgSkillRange = function(skill) {
+        var range = _Game_Enemy_srpgSkillRange.call(this, skill);
+        //console.log(this, range)
+        if (this.AoEDistance() !== undefined) return this.AoEDistance() > range ? -1 : $gameTemp.SrpgDistance();
+        else return range;
+    };
+
+//==========================================================================================================
+// Exp distribution,  turn end condition fix.
+//==========================================================================================================
+    //condition to share exp
+    BattleManager.shareExp = function(){
+        return $gameSystem.isSRPGMode() == true && $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[0] != 'actor';
+    }
+
+    //share exp when enemy cast AoE to multiple actors
+    var _SRPG_BattleManager_gainExp = BattleManager.gainExp;
+    BattleManager.gainExp = function() {
+        if (BattleManager.shareExp()) {
+            var exp = Math.round(this._rewards.exp / $gameParty.battleMembers().length)
+            //console.log( $gameParty.battleMembers());
+            $gameParty.battleMembers().forEach(function(actor) {
+                actor.gainExp(exp);
+            });
+        } else {
+            _SRPG_BattleManager_gainExp.call(this);
+        }
+    };
+
+    Scene_Map.prototype.gainExp = BattleManager.gainExp;
+
     var _SRPG_Game_Troop_expTotal = Game_Troop.prototype.expTotal;
     Game_Troop.prototype.expTotal = function() {
         if ($gameSystem.isSRPGMode() == true) {
@@ -569,27 +624,11 @@
                 var actor = $gameParty.battleMembers()[0];
                 exp += (actor.nextLevelExp() - actor.currentLevelExp()) * _srpgBattleExpRateForActors;
             }
-            //console.log(exp)
             return Math.round(exp);
         } else return _SRPG_Game_Troop_expTotal.call(this);
     };
 
-    //share exp when enemy cast AoE to multiple actors
-    var _SRPG_BattleManager_gainExp = BattleManager.gainExp;
-    BattleManager.gainExp = function() {
-        if ($gameSystem.isSRPGMode() == true && $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[0] != 'actor') {
-            var exp = Math.round(this._rewards.exp / $gameParty.battleMembers().length)
-            //console.log( $gameParty.battleMembers());
-            $gameParty.battleMembers().forEach(function(actor) {
-                actor.gainExp(exp);
-            });
-        } else {
-            _SRPG_BattleManager_gainExp.call(this);
-        }
-    };
-
     //End turn immediately when active battler is dead.
-    Scene_Map.prototype.gainExp = BattleManager.gainExp;
     var _BattleManager_updateTurn = BattleManager.updateTurn
     BattleManager.updateTurn = function() {
         if ($gameSystem.isSRPGMode()){
@@ -624,6 +663,23 @@
         return false;
     };
 
+//==========================================================================================================
+// Srpg Battle Result window that can display more items and show exp according to the new distribution rule
+//==========================================================================================================
+
+    // if active event is not actor, distribute exp to all battle members.
+    Window_SrpgBattleResult.prototype.setRewards = function(rewards) {
+        this._rewards = {}
+        this._rewards.gold = rewards.gold;
+        this._rewards.items = rewards.items;
+        if (BattleManager.shareExp()){
+            this._rewards.exp = Math.round(rewards.exp / $gameParty.battleMembers().length);
+        } else {
+            this._rewards.exp = rewards.exp
+        }
+        this._changeExp = 30;
+    };
+
     //check for whether AoE map battle is finished.
     Scene_Map.prototype.canMakeRewards = function() {
         var livePartyMembers = $gameParty.battleMembers().filter(function(member) {
@@ -637,18 +693,6 @@
     Scene_Map.prototype.hasRewards = function() {
         return this._rewards.exp > 0 || this._rewards.gold > 0 || this._rewards.items.length > 0;
     }
-
-    Window_SrpgBattleResult.prototype.setRewards = function(rewards) {
-        this._rewards = {}
-        this._rewards.gold = rewards.gold;
-        this._rewards.items = rewards.items;
-        if ($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[0] != 'actor'){
-            this._rewards.exp = Math.round(rewards.exp / $gameParty.battleMembers().length);
-        } else {
-            this._rewards.exp = rewards.exp
-        }
-        this._changeExp = 30;
-    };
 
     //change the way to draw items to support multiple items.
     Window_SrpgBattleResult.prototype.drawGainItem = function(x, y) {
@@ -683,6 +727,33 @@
         this.drawText('X', x, y, width, 'left');
         this.drawText(counts, x + this.textWidth('X') + this.textPadding(), y, width - this.textWidth('X'), 'left');
     };
+
+    //rewrite to give a clearer logic
+    Scene_Battle.prototype.createSprgBattleStatusWindow = function() {
+        this._srpgBattleStatusWindowLeft = new Window_SrpgBattleStatus(0);
+        this._srpgBattleStatusWindowRight = new Window_SrpgBattleStatus(1);
+        this._srpgBattleStatusWindowLeft.openness = 0;
+        this._srpgBattleStatusWindowRight.openness = 0;
+        if (!$gameSystem.isSRPGMode()) return;
+        userArray = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId());
+        targetArray = $gameSystem.EventToUnit($gameTemp.targetEvent().eventId());
+
+        if (userArray[0] === 'actor') {
+            this._srpgBattleStatusWindowRight.setBattler(userArray[1]);
+            var targetWindow = this._srpgBattleStatusWindowLeft
+        } else {
+            this._srpgBattleStatusWindowLeft.setBattler(userArray[1]);
+            var targetWindow = this._srpgBattleStatusWindowRight
+        }
+        if (userArray[1] !== targetArray[1]){
+            targetWindow.setBattler(targetArray[1])
+        }
+        this.addWindow(this._srpgBattleStatusWindowLeft);
+        this.addWindow(this._srpgBattleStatusWindowRight);
+        BattleManager.setSrpgBattleStatusWindow(this._srpgBattleStatusWindowLeft, this._srpgBattleStatusWindowRight);
+    };
+
+
     // BattleManager.makeRewards = function() {
     //     this._rewards.gold = $gameTroop.goldTotal();
     //     this._rewards.exp = $gameTroop.expTotal();
