@@ -16,14 +16,18 @@ https://forums.rpgmakerweb.com/index.php?threads/srpg-engine-plugins-for-creatin
 ## Terrain Effect Window
 ![](https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/demo%20terrain%20effect%20window.gif)
 
+## AoE Animation
+![](https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/demo%20AoE%20animation-map%20battle.gif)
+
+![](https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/demo%20AoEAnimation.gif)
 ## Move Method
 ![](https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/demo%20move%20method.gif)
-
-## AoE Animation
-![](https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/demo%20AoEAnimation.gif)
 
 ## Aura Skill
 ![](https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/demo%20aura%20skill.gif)
 
 ## Move After Action
 ![](https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/move%20after%20action.gif)
+
+## More:
+There are functional plugins that is hard to show the idea with GIF demo. But they are also very useful! Give them a try!
