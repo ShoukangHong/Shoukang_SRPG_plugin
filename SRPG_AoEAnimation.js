@@ -250,6 +250,16 @@
         return [vectorX, vectorY]
     }
 
+    var _Scene_Map_prototype_srpgAICommand = Scene_Map.prototype.srpgAICommand
+    Scene_Map.prototype.srpgAICommand = function() {
+        var result = _Scene_Map_prototype_srpgAICommand.call(this);
+        if (!result){
+            $gameTemp.clearAreaTargets(); //shoukang clear areas
+            $gameTemp.clearArea(); //shoukang clear areas
+        }
+        return result;
+    };
+
 //============================================================================================
 //AoE animation Main logic
 //============================================================================================
@@ -294,8 +304,10 @@
             } else if (userType === targetType) {
                 this.pushSrpgBattler(targetType, target);
                 user.action(0).setTarget(1);
+                target.removeCurrentAction();
             } else {
                 this.pushSrpgBattler(targetType, target);
+                target.removeCurrentAction();
                 if (i === 0) user.action(0).setTarget(0);
             }
             if (!this.counterModeValid(targetEvents[i])) continue;
