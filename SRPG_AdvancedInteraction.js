@@ -199,7 +199,7 @@
     };
 
     Window_ActorCommand.prototype.addInteractionCommands = function() {
-        var dist0Events = $gameMap.eventsXyNt($gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY())
+        var dist0Events = $gameMap.eventsXy($gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY())
         var dist1Events = $gameMap.getSurroundingEvents($gameTemp.activeEvent());// this gets all events that surrounds(distance = 1) the activeEvent
         this.addActorInteractionCommand(dist1Events);
         this.addEnemyInteractionCommand(dist1Events);
@@ -346,7 +346,7 @@
     Game_Map.prototype.getSurroundingEvents = function(event) {
         var events = [];
         this.getSurroundingTiles(event).forEach(function(xy) {
-            events = events.concat($gameMap.eventsXyNt(xy[0], xy[1]));
+            events = events.concat($gameMap.eventsXy(xy[0], xy[1]));
         });
         return events;
     }
@@ -549,6 +549,7 @@
             });
         };
     }
+
     // Game_Character.prototype.setSelected = function(val){
     //     this._isSelected = val;
     // }
