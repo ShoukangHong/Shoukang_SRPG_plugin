@@ -214,6 +214,8 @@
 			} else {
 				$gameTemp.clearMoveTable();
 				user.onAllActionsEnd();
+				$gameTemp.clearAreaTargets(); //shoukang clear areas
+				$gameTemp.clearArea(); //shoukang clear areas
 				return false;
 			}
 		}
