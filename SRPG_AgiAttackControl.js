@@ -148,5 +148,20 @@
         action.setHideAnimation(undefined);
         return action;
     }
+    
+if (!Game_Action.prototype.createAoERepeatedAction){
+    Game_Action.prototype.createAoERepeatedAction = function(){
+        var hiddenAction = new Game_Action(this.subject());
+        var noCostItem = {
+            ...this.item()
+        }
+        noCostItem.mpCost = 0;
+        noCostItem.tpCost = 0;
+        hiddenAction.setItemObject(this.item());
+        hiddenAction.setEditedItem(noCostItem);
+        hiddenAction.setHideAnimation(true);
+        return hiddenAction;
+    }  
+}
 
 })();
