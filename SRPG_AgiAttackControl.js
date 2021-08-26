@@ -38,7 +38,7 @@
  * You can also use (dif/b.agi) * 2, dif > Math.randomInt(100) ? 1:0, etc.
  * if result is a float number like 3.1415... only the integer part will be taken into account.
  * ===================================================================================================
- * v 1.01 add counter attack mode! Fix a bug caused by max party member, fix the bug of sprite priority in battle.
+ * v 1.00 first release
  */
 (function () {
     'use strict'
