@@ -1,6 +1,6 @@
 //=============================================================================
 //SRPG_AoEAnimation.js
-// v 1.04 fixed some bugs and improve logic. Now the map battle should work completely the same as scene battle.
+// v 1.04 fixed some bugs and improve logic. Now the map battle should work completely the same as scene battle. Also updates SRPG_DynamicAction
 // Use my bug fix patch! Especially the SRPG_DynamicAction, the map AoE battle will work amazingly good!
 // Download here https://github.com/ShoukangHong/Shoukang_SRPG_plugin/tree/main/BugFixPatch
 //=============================================================================
@@ -84,7 +84,7 @@
  * ===================================================================================================
  * Credits to: Dopan, Dr. Q, Traverse, SoulPour777
  * ===================================================================================================
- * v 1.04 fixed some bugs and improve logic. Now the map battle should work completely the same as scene battle.
+ * v 1.04 fixed some bugs and improve logic. Now the map battle should work completely the same as scene battle. Also updates SRPG_DynamicAction
  * v 1.03 fixed some bugs
  * v 1.02 Change battle result window to fit for more reward items.
  *        Fix a bug that counter attack don't stop when active battler is dead.
@@ -678,6 +678,25 @@
             }
         }
         _BattleManager_updateTurn.call(this)
+    };
+
+    var _SRPG_BattleManager_endTurn = BattleManager.endTurn;
+    BattleManager.endTurn = function() {
+        if ($gameSystem.isSRPGMode() == true) {
+            this._phase = 'battleEnd';
+            this._preemptive = false;
+            this._surprise = false;
+            this.refreshStatus();
+            if (this._phase) {
+                if ($gameParty.battleMembers().length > 0 && !$gameParty.isAllDead()) { // edit so gain exp when there are live members
+                    this.processSrpgVictory();
+                } else {
+                    this.endBattle(3);
+                }
+            }
+        } else {
+            _SRPG_BattleManager_endTurn.call(this);
+        }
     };
 
     //share exp when enemy cast AoE to multiple actors
