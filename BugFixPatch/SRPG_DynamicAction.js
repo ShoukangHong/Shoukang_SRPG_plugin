@@ -248,7 +248,7 @@ Scene_Map.prototype.srpgInvokeMapSkill = function(data) {
 
     // start
     if (data.phase == 'start' && action.isBatchAction()) {
-        if (!user.canMove() || !user.canUse(action.item()) || !target.isAlive()) {
+        if (!user.canMove() || !user.canUse(action.item()) || $gameTroop.isAllDead()) {//shoukang edit $gameTroop.isAllDead()
             data.phase = 'cancel';
             this._srpgSkillList.unshift(data);
             // Show the results
@@ -715,6 +715,10 @@ function getGridInfo(mapX, mapY) {
     grid.x = $gameMap.mapToCanvasX(mapX);
     grid.y = $gameMap.mapToCanvasY(mapY) + grid.height / 2;
     return grid;
+}
+
+Game_Action.prototype.isHideAnimation = function(){
+    return this._hideAnimation;
 }
 
 })();
