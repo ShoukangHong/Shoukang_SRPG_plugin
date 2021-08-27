@@ -1,6 +1,6 @@
 //=============================================================================
 //SRPG_AoEAnimation.js
-// v 1.04 fixed some bugs and improve logic. Now the map battle should work completely the same as scene battle. Also updates SRPG_DynamicAction
+// v 1.04 fixed some bugs and improve logic. Now the map battle should work completely the same as scene battle.  Also updates SRPG_DynamicAction
 // Use my bug fix patch! Especially the SRPG_DynamicAction, the map AoE battle will work amazingly good!
 // Download here https://github.com/ShoukangHong/Shoukang_SRPG_plugin/tree/main/BugFixPatch
 //=============================================================================
@@ -84,7 +84,7 @@
  * ===================================================================================================
  * Credits to: Dopan, Dr. Q, Traverse, SoulPour777
  * ===================================================================================================
- * v 1.04 fixed some bugs and improve logic. Now the map battle should work completely the same as scene battle. Also updates SRPG_DynamicAction
+ * v 1.04 fixed some bugs and improve logic. Now the map battle should work completely the same as scene battle.  Also updates SRPG_DynamicAction
  * v 1.03 fixed some bugs
  * v 1.02 Change battle result window to fit for more reward items.
  *        Fix a bug that counter attack don't stop when active battler is dead.
@@ -698,6 +698,18 @@
             _SRPG_BattleManager_endTurn.call(this);
         }
     };
+
+    BattleManager.battlerDeadEndBattle = function() {
+        var userType = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[0]
+        var targetType = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[0]
+        if ($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1].isDead()){
+            return true;
+        }
+        if (userType == targetType) return false;
+        return $gameParty.members().isAllDead() || $gameTroop.members().isAllDead()
+    }
+
+    Scene_Map.prototype.battlerDeadEndBattle = BattleManager.battlerDeadEndBattle;
 
     //share exp when enemy cast AoE to multiple actors
     var _SRPG_BattleManager_gainExp = BattleManager.gainExp;
