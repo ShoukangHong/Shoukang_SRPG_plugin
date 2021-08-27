@@ -248,7 +248,7 @@ Scene_Map.prototype.srpgInvokeMapSkill = function(data) {
 
     // start
     if (data.phase == 'start' && action.isBatchAction()) {
-        if (!user.canMove() || !user.canUse(action.item()) || $gameTroop.isAllDead()) {//shoukang edit $gameTroop.isAllDead()
+        if (!user.canMove() || !user.canUse(action.item()) || this.battlerDeadEndBattle()) {
             data.phase = 'cancel';
             this._srpgSkillList.unshift(data);
             // Show the results
