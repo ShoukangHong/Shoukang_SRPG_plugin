@@ -103,7 +103,7 @@
 
     Game_Battler.prototype.reserveSameAction = function(num, agiBattlers) {
     	this._reserveAction = [];
-        var action = _noCost ? this._actions[0].createAoENoCostAction() : this._actions[0];
+        var action = _noCost ? this._actions[0].createNoCostAction() : this._actions[0];
     	for (var i = 0; i < num; i++){
 	        this._reserveAction.push(action);
 	        agiBattlers.push(this);
@@ -148,7 +148,7 @@
         action.setHideAnimation(undefined);
         return action;
     }
-    
+
 if (!Game_Action.prototype.createAoERepeatedAction){
     Game_Action.prototype.createAoERepeatedAction = function(){
         var hiddenAction = new Game_Action(this.subject());
