@@ -645,6 +645,7 @@
         }
         noCostItem.mpCost = 0;
         noCostItem.tpCost = 0;
+        noCostItem.srpgDataClass = this._item._dataClass;
         hiddenAction.setItemObject(this.item());
         hiddenAction.setEditedItem(noCostItem);
         hiddenAction.setHideAnimation(true);
@@ -675,6 +676,12 @@
     Game_Battler.prototype.clearAoEDistance = function(){
         this._AoEDistance = undefined;
     }
+
+    //let our faked skill item considered as skill
+    var _DataManager_isSkill = DataManager.isSkill;
+    DataManager.isSkill = function(item) {
+        return _DataManager_isSkill.call(this, item) || (item && item.srpgDataClass === 'skill');
+    };
 
     //A hack way to get skill correct.
     var _Game_Actor_srpgSkillMinRange = Game_Actor.prototype.srpgSkillMinRange
