@@ -22,9 +22,15 @@
  * @help 
  * ===================================================================================================
  * Compatibility:
- * Map battle need SRPG_AoEAnimation(updated on 8/26/21), and place this plugin below it.
+ * Map battle need SRPG_AoEAnimation(updated on 8/27/21), and place this plugin below it.
  * Scene battle should work regradless.
  * this plugin will make agiAttackplus parameter in core useless.
+ * ===================================================================================================
+ *
+ * ===================================================================================================
+ * New actor / enemy tags:
+ * <noAgiAttack>        this battler can't do Agi Attack
+ * <noAgiCounter>    this battler won't receive Agi Counter Attack
  * ===================================================================================================
  * The following values can be used for agi attack formula:
  * a    :fast unit in the battle
@@ -50,28 +56,32 @@
     var _max = Number(parameters['agi attack max time'] || 2);
     var _noCost = !!eval(parameters['agi attack no cost']);
 
-    //map battle logiv
-    Scene_Map.prototype.srpgAgiAttackPlus = function(user, target, reaction, actFirst, targetEvents){
-        this.srpgAddMapSkill(reaction, target, user, false);//action, user, target, addToFront
-        var firstBattler = user.agi >= target.agi ? user : target;
-        var secondBattler = user.agi >= target.agi ? target : user;
-        if (firstBattler.canAgiAttack()) {
-        	var agiTime = firstBattler.getAgiAttackTime(secondBattler);
-        	var agiAction = _noCost ? firstBattler.action(0).createNoCostAction() : firstBattler.action(0);
-            for (var i = 0; i < agiTime; i++) {
-                if (target == $gameSystem.EventToUnit(targetEvents[0].eventId())[1] && firstBattler == user){
-                     this.addAoESkillToAgiList(agiAction, firstBattler, targetEvents);
-                } else if (firstBattler == target) {
-                    this.addSkillToAgiList(agiAction, firstBattler, secondBattler);
-                }
+    //map battle logic
+    Scene_Map.prototype.srpgAgiAttackPlus = function(agiUser, target, targetEvents){
+        if (agiUser.agi <= target.agi) return;
+        if (!agiUser.canAgiAttack()) return;
+        var agiTime = agiUser.getAgiAttackTime(target);
+        var agiAction = _noCost ? agiUser.action(0).createNoCostAction() : agiUser.action(0);
+        for (var i = 0; i < agiTime; i++){
+            if (agiUser == $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]){
+                this.addAoESkillToAgiList(agiAction, agiUser, targetEvents);
+            } else {
+                this.addSkillToAgiList(agiAction, agiUser, target);
+                console.log(agiAction)
             }
         }
     }
 
     Game_Battler.prototype.getAgiAttackTime = function(target){
         var dif = this.agi - target.agi;
-        var count = Math.floor(eval(_formula))
-        return Math.min(count, _max)
+        var a = this;
+        var b = target;
+        var ma = a.isActor() ? a.actor().meta : a.enemy().meta;
+        var mb = b.isActor() ? b.actor().meta : b.enemy().meta;
+        if (ma.noAgiAttack) return 0;
+        if (mb.noAgiCounter) return 0;
+        var count = Math.floor(eval(_formula));
+        return Math.min(count, _max);
     }
 
     var _BattleManager_makeActionOrders = BattleManager.makeActionOrders;
@@ -148,20 +158,5 @@
         action.setHideAnimation(undefined);
         return action;
     }
-
-if (!Game_Action.prototype.createAoERepeatedAction){
-    Game_Action.prototype.createAoERepeatedAction = function(){
-        var hiddenAction = new Game_Action(this.subject());
-        var noCostItem = {
-            ...this.item()
-        }
-        noCostItem.mpCost = 0;
-        noCostItem.tpCost = 0;
-        hiddenAction.setItemObject(this.item());
-        hiddenAction.setEditedItem(noCostItem);
-        hiddenAction.setHideAnimation(true);
-        return hiddenAction;
-    }  
-}
 
 })();
