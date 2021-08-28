@@ -357,27 +357,31 @@
         action.setSubject(user);
         var hiddenAction = action.createAoERepeatedAction();
         var addActionTimes = Number(action.item().meta.addActionTimes || 0);
-
+        if (addActionTimes > 0) user.SRPGActionTimesAdd(addActionTimes);
         for (var i = 0; i < targetEvents.length; i++) {
             var target = $gameSystem.EventToUnit(targetEvents[i].eventId())[1];
             var targetType = $gameSystem.EventToUnit(targetEvents[i].eventId())[0];
             if (target !== user) this.pushSrpgBattler(targetType, target);
             var act = (i < 1 ? action : hiddenAction);
-            //console.log(userArray[0], userArray[1], targetA[0], targetA[1])
             this.srpgAddMapSkill(act, user, target);
             this.setTargetDirection(targetEvents[i])
         }
-        this.addTargetCounterAttack(action, userArray, targetEvents);
+
+        if (userArray[0] !== targetArray[0]){        
+            this._agiList = []; //make a list to store agi attacks
+            this.srpgAgiAttackPlus(user, targetArray[1], targetEvents); //add agi attack for user
+            this.addTargetCounterAttack(action, user, targetEvents); // add counterattack and agi attack for targets
+            this.pushAgiSkilltoMapSkill(); // agi skill should happen after one round of counter attack.
+        }
         this.eventBeforeBattle();
     }
 
-    Scene_Map.prototype.addTargetCounterAttack = function(action, userArray, targetEvents){
-        this._agiList = [];
+    Scene_Map.prototype.addTargetCounterAttack = function(action, user, targetEvents){
         for (var i = 0; i < targetEvents.length; i++) {
             var targetArray = $gameSystem.EventToUnit(targetEvents[i].eventId());
             var target = targetArray[1];
-            if (!this.counterModeValid(targetEvents[i])) return;
-            if (userArray[0] !== targetArray[0] && target.canMove() && !action.item().meta.srpgUncounterable) {
+            if (!this.counterModeValid(targetEvents[i])) continue;
+            if (target.canMove() && !action.item().meta.srpgUncounterable) {
                 target.srpgMakeNewActions();
                 var reaction = target.action(0);
                 reaction.setSubject(target);
@@ -387,42 +391,33 @@
                 //console.log(target.canUse(reaction.item()));
                 if (_counterMode === 'first' && target.canUse(reaction.item())) this._counterCount -= 1;
                 var actFirst = (reaction.speed() > action.speed());
-                // move the agi attack plus here as it also need to check: userArray[0] !== targetArray[0] && target.canMove() && !action.item().meta.srpgUncounterable
-                this.srpgAgiAttackPlus(userArray[1], target, reaction, actFirst, targetEvents);
+                if (_srpgUseAgiAttackPlus == 'true') actFirst = false;
+                this.srpgAddMapSkill(reaction, target, user, actFirst);//action, user, target, addToFront
+                this.srpgAgiAttackPlus(target, user, targetEvents);
             }
         }
-        this.pushAgiSkilltoMapSkill();
     }
 
-    Scene_Map.prototype.srpgAgiAttackPlus = function(user, target, reaction, actFirst, targetEvents){
-        if (_srpgUseAgiAttackPlus == 'true') actFirst = false;
-        this.srpgAddMapSkill(reaction, target, user, actFirst);//action, user, target, addToFront
+    Scene_Map.prototype.srpgAgiAttackPlus = function(agiUser, target, targetEvents){
         if (_srpgUseAgiAttackPlus != 'true') return;
-
-        if (user.agi >= target.agi) {
-            var firstBattler = user;
-            var secondBattler = target;
-        } else {
-            var firstBattler = target;
-            var secondBattler = user;
-        }
-        if (!firstBattler.currentAction() || !firstBattler.currentAction().item()) {
+        if (agiUser.agi <= target.agi) return;
+        if (!agiUser.currentAction() || !agiUser.currentAction().item()) {
             return;
         }
-        if (firstBattler.currentAction().canAgiAttack()) {
-            var dif = firstBattler.agi - secondBattler.agi;
-            var difMax = secondBattler.agi * _srpgAgilityAffectsRatio - secondBattler.agi;
+        if (agiUser.currentAction().canAgiAttack()) {
+            var dif = agiUser.agi - target.agi;
+            var difMax = target.agi * _srpgAgilityAffectsRatio - target.agi;
             if (difMax == 0) {
                 var agilityRate = 100;
             } else {
                 var agilityRate = dif / difMax * 100;
             }
             if (agilityRate > Math.randomInt(100)) {
-                var agiAction = firstBattler.action(0);
-                if (target == $gameSystem.EventToUnit(targetEvents[0].eventId())[1] && firstBattler == user){
-                    this.addAoESkillToAgiList(agiAction, firstBattler, targetEvents);
-                } else if (firstBattler == target) {
-                    this.addSkillToAgiList(agiAction, firstBattler, secondBattler);
+                var agiAction = agiUser.action(0);
+                if (agiUser == $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]){
+                    this.addAoESkillToAgiList(agiAction, agiUser, targetEvents);
+                } else {
+                    this.addSkillToAgiList(agiAction, agiUser, target);
                 }
             }
         }
@@ -528,26 +523,6 @@
         }
     };
 
-    //fix bug for event before battle
-    var _Scene_Map_waitingForSkill = Scene_Map.prototype.waitingForSkill
-    Scene_Map.prototype.waitingForSkill = function() {
-        if ($gameMap.isEventRunning()){
-            return true;
-        }
-        return _Scene_Map_waitingForSkill.call(this);
-    };
-
-    // fix bug for not clearing area after searching targets.
-    var _Scene_Map_prototype_srpgAICommand = Scene_Map.prototype.srpgAICommand
-    Scene_Map.prototype.srpgAICommand = function() {
-        var result = _Scene_Map_prototype_srpgAICommand.call(this);
-        if (!result){
-            $gameTemp.clearAreaTargets();
-            $gameTemp.clearArea();
-        }
-        return result;
-    };
-
     //rewrite to give a clearer logic
     Scene_Battle.prototype.createSprgBattleStatusWindow = function() {
         this._srpgBattleStatusWindowLeft = new Window_SrpgBattleStatus(0);
@@ -582,6 +557,70 @@
             if (this._areaTargets[i].event) events.push(this._areaTargets[i].event);
         }
         return events;
+    };
+    //fix bug for event before battle
+    var _Scene_Map_waitingForSkill = Scene_Map.prototype.waitingForSkill
+    Scene_Map.prototype.waitingForSkill = function() {
+        if ($gameMap.isEventRunning()){
+            return true;
+        }
+        return _Scene_Map_waitingForSkill.call(this);
+    };
+
+    // fix bug for not clearing area after searching targets.
+    var _Scene_Map_prototype_srpgAICommand = Scene_Map.prototype.srpgAICommand
+    Scene_Map.prototype.srpgAICommand = function() {
+        var result = _Scene_Map_prototype_srpgAICommand.call(this);
+        if (!result){
+            $gameTemp.clearAreaTargets();
+            $gameTemp.clearArea();
+        }
+        return result;
+    };
+
+    var _Game_Action_apply = Game_Action.prototype.apply
+    Game_Action.prototype.apply = function(target) {
+        if ($gameSystem.useMapBattle() && $gameSystem.isSubBattlePhase() == 'invoke_action'){
+            var result = target.result();
+            result.clear();
+            result.used = this.testApply(target);
+            result.missed = (result.used && Math.random() >= this.itemHit(target));
+            result.evaded = (!result.missed && Math.random() < this.itemEva(target));
+            result.physical = this.isPhysical();
+            result.drain = this.isDrain();
+            if (result.isHit()) {
+                if (this.item().damage.type > 0) {
+                    result.critical = (Math.random() < this.itemCri(target));
+                    var value = this.makeDamageValue(target, result.critical);
+                    this.executeDamage(target, value);
+                }
+                this.item().effects.forEach(function(effect) {
+                    this.applyItemEffect(target, effect);
+                }, this);
+                this.applyItemUserEffect(target);
+            }
+        } else {
+            _Game_Action_apply.call(this, target);
+        }
+    };
+
+    // damage pop-up with less computation
+    Sprite_Character.prototype.setupDamagePopup_MB = function() {
+        var array = $gameSystem.EventToUnit(this._character.eventId());
+        if ($gameSystem.isSRPGMode() && array && array[1]) {
+            var battler = array[1];
+            if (battler.isDamagePopupRequested()) {
+                var sprite = new Sprite_Damage();
+                sprite.x = this.x;
+                sprite.y = this.y;
+                sprite.z = 9;
+                sprite.setup(battler);
+                this._damages.push(sprite);
+                this.parent.addChild(sprite);
+                battler.clearDamagePopup();
+                battler.clearResult();
+            }
+        }
     };
 // ==========================================================================
 // repeated AoE action that doesn't show animation and doesn't cost tp, mp
@@ -621,6 +660,7 @@
     Game_Action.prototype.canAgiAttack = function(action){
         return this.isForOpponent() && !this.item().meta.doubleAction;
     }
+
 //============================================================================================
 //A hack way to get AoE counter attack distance correct.
 //============================================================================================
