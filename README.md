@@ -30,7 +30,7 @@ In the original SRPG Engine, each target is added to a queue and then the game w
 
 ![](https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/demo%20AoE%20animation-map%20battle.gif)
 
-In the scene battle, the placement of battlers are based on their position on the map.
+In the scene battle, the placement of battlers are based on their position on the map and the direction of the active battler.
 
 ![](https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/demo%20AoEAnimation.gif)
 ## Move Method
