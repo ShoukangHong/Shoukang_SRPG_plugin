@@ -8,8 +8,9 @@ https://forums.rpgmakerweb.com/index.php?threads/srpg-engine-plugins-for-creatin
 
 ## Battle Prepare
 Add battle Preparation phase at the beginning of SRPG battle. It allows you to change, remove, add battlers, and switch battler position before battle.
+You can also view enemies, shop and manage equipments before battle.
 
-![](https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/demo%20battle%20prepare.gif)
+![](https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/demo%20battle%20prepare-2.gif)
 
 ## Advanced Interaction
 Rather than simply wait on an event to trigger an event, this plugin allows you to trigger event via interaction commands. The interaction commands automatically appears when there are interactable events.
