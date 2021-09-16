@@ -27,7 +27,9 @@ This plugin allows you to visualize the terrain effect from SRPG_TerrainEffect. 
 ![](https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/demo%20terrain%20effect%20window.gif)
 
 ## AoE Animation
-In the original SRPG Engine, each target is added to a queue and then the game will execute each battle individually 1 on 1. This script will collect all targets and add them into one battle for a 1 vs many scenario. It works for both scene battle and map battle. After several updates now the function is more than just changing the animation. Counter attack sequence and distance, AoE agi attack, AoE Exp distribution, and more issues are solved with this plugin. I'd rather call it AOE Battle Plus now.
+In the original SRPG Engine, each target is added to a queue and then the game will execute each battle individually 1 on 1. This script will collect all targets and add them into one battle for a 1 vs many scenario. It works for both scene battle and map battle. 
+
+After several updates now the function is more than just changing the animation. Counter attack sequence and distance, AoE agi attack, AoE Exp distribution, and more issues are solved with this plugin. I'd rather call it AOE Battle Plus now.
 
 ![](https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/demo%20AoE%20animation-map%20battle.gif)
 
