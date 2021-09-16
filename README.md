@@ -22,7 +22,7 @@ This plugin also includes a build in interaction type: wrap. You can not only us
 ![](https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/demo%20adv%20interaction-wrap.gif)
 
 ## Terrain Effect Window
-This plugin allows you to visualize the terrain effect from SRPG_TerrainEffect.
+This plugin allows you to visualize the terrain effect from SRPG_TerrainEffect. When a battler is selected, it's special terrain bonus will also show up.
 
 ![](https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/demo%20terrain%20effect%20window.gif)
 
