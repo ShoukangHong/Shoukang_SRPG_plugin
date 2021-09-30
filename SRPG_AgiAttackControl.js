@@ -30,7 +30,7 @@
  * ===================================================================================================
  * New actor / enemy tags:
  * <noAgiAttack>        this battler can't do Agi Attack
- * <noAgiCounter>    this battler won't receive Agi Counter Attack
+ * <noAgiCounter>    this battler won't receive Agi Attack
  * ===================================================================================================
  * The following values can be used for agi attack formula:
  * a    :fast unit in the battle
