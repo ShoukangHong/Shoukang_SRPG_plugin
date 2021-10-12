@@ -25,8 +25,8 @@
  * @type boolean
  * @default true
  *
- * @param default agi counter
- * @desc If not specified, battler can receive agi counter attack
+ * @param default agi reception
+ * @desc If not specified, battler can receive agi attack
  * @type boolean
  * @default true
  *
@@ -41,7 +41,7 @@
  * ===================================================================================================
  * New state / equip / actor / enemy / class note tags:
  * <agiAttack: true>     this battler can do Agi Attack
- * <agiCounter: true>    this battler can receive Agi Attack(if its enemy can do agi attack)
+ * <agiReception: true>    this battler can receive Agi Attack(if its enemy can do agi attack)
  * priority is state > equip > actor/enemy > class
  * ===================================================================================================
  * The following values can be used for agi attack formula:
@@ -69,7 +69,7 @@
     var _max = Number(parameters['agi attack max time'] || 2);
     var _noCost = !!eval(parameters['agi attack no cost']);
     var _defaultAgiAttack = !!eval(parameters['default agi attack']);
-    var _defaultAgiCounter = !!eval(parameters['default agi counter']);
+    var _defaultAgiReception = !!eval(parameters['default agi reception']);
 
     //map battle logic
     Scene_Map.prototype.srpgAgiAttackPlus = function(agiUser, target, targetEvents){
@@ -90,7 +90,7 @@
         var dif = this.agi - target.agi;
         var a = this;
         var b = target;
-        if (a.canAgiAttack() && b.canAgiCounter()) {
+        if (a.canAgiAttack() && b.canAgiReception()) {
             var count = Math.floor(eval(_formula));
             return Math.min(count, _max);
         } else return 0;
@@ -103,10 +103,10 @@
         return this.checkAgi(items, 'agiAttack');
     };
 
-    Game_Actor.prototype.canAgiCounter = function() {
+    Game_Actor.prototype.canAgiReception = function() {
         var items = this.states().concat(this.equips())
         items = items.concat([this.actor(), this.currentClass()])
-        return this.checkAgi(items, 'agiCounter');
+        return this.checkAgi(items, 'agiReception');
     };
 
     Game_Enemy.prototype.canAgiAttack = function() {
@@ -114,9 +114,9 @@
         return this.checkAgi(items, 'agiAttack')
     };
 
-    Game_Enemy.prototype.canAgiCounter = function() {
+    Game_Enemy.prototype.canAgiReception = function() {
         var items = this.states().concat([this.enemy()])
-        return this.checkAgi(items, 'agiCounter');
+        return this.checkAgi(items, 'agiReception');
     };
 
     Game_Battler.prototype.checkAgi = function (items, symbol){
@@ -126,7 +126,7 @@
             }
         }
         if (symbol === 'agiAttack') return _defaultAgiAttack;
-        if (symbol === 'agiCounter') return _defaultAgiCounter;
+        if (symbol === 'agiReception') return _defaultAgiReception;
     }
 
     var _BattleManager_makeActionOrders = BattleManager.makeActionOrders;
