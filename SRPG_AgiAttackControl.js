@@ -133,37 +133,37 @@
     var _BattleManager_makeActionOrders = BattleManager.makeActionOrders;
     BattleManager.makeActionOrders = function() {
         if ($gameSystem.isSRPGMode()){
-        	var battlers = $gameParty.members().concat($gameTroop.members());
-        	var agiBattlers = [];
-		    battlers.forEach(function(battler) {battler.makeSpeed();});
-		    //active event timing is 0, targets timing is 1, so actor will stay at [0]
+            var battlers = $gameParty.members().concat($gameTroop.members());
+            var agiBattlers = [];
+            battlers.forEach(function(battler) {battler.makeSpeed();});
+            //active event timing is 0, targets timing is 1, so actor will stay at [0]
             battlers.sort(function(a, b) {return a.srpgActionTiming() - b.srpgActionTiming();});
             var user = battlers[0];
             for (var i = 1; i < battlers.length; i++){
-	            var target = battlers[i];
-		        var firstBattler = user.agi >= target.agi ? user : target;
-		        var secondBattler = user.agi >= target.agi ? target : user;
-		        if (firstBattler.canAgiAttack()) {
-		        	var agiTime = firstBattler.getAgiAttackTime(secondBattler);
-		        	var agiAction = firstBattler.action(0);
-		            if (firstBattler == user && i == 1 && agiTime > 0){
-		            	firstBattler.reserveSameAction(agiTime, agiBattlers);
-		            } else if (firstBattler == target && agiTime > 0) {
-		                firstBattler.reserveSameAction(agiTime, agiBattlers);
-		            }
-		        }
+                var target = battlers[i];
+                var firstBattler = user.agi >= target.agi ? user : target;
+                var secondBattler = user.agi >= target.agi ? target : user;
+                if (firstBattler.canAgiAttack()) {
+                    var agiTime = firstBattler.getAgiAttackTime(secondBattler);
+                    var agiAction = firstBattler.action(0);
+                    if (firstBattler == user && i == 1 && agiTime > 0){
+                        firstBattler.reserveSameAction(agiTime, agiBattlers);
+                    } else if (firstBattler == target && agiTime > 0) {
+                        firstBattler.reserveSameAction(agiTime, agiBattlers);
+                    }
+                }
             }
             this._actionBattlers = battlers.concat(agiBattlers)
         } else _BattleManager_makeActionOrders.call(this);
     }
 
     Game_Battler.prototype.reserveSameAction = function(num, agiBattlers) {
-    	this._reserveAction = [];
+        this._reserveAction = [];
         var action = _noCost ? this._actions[0].createNoCostAction() : this._actions[0];
-    	for (var i = 0; i < num; i++){
-	        this._reserveAction.push(action);
-	        agiBattlers.push(this);
-    	}
+        for (var i = 0; i < num; i++){
+            this._reserveAction.push(action);
+            agiBattlers.push(this);
+        }
     };
 
     Game_Battler.prototype.addSameAction = function() {
@@ -181,9 +181,9 @@
     };
 
     BattleManager.clearRemainingActions = function() {
-    	for (var i = 0; i < this._actionBattlers.length; i++){
-    		this._actionBattlers[i].clearReserveAction();
-    	}
+        for (var i = 0; i < this._actionBattlers.length; i++){
+            this._actionBattlers[i].clearReserveAction();
+        }
         this._actionBattlers = [];
     };
 
