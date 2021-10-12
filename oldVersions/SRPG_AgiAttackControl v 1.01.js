@@ -1,5 +1,6 @@
 //=============================================================================
 //SRPG_AgiAttackControl.js
+//change the file name to SRPG_AgiAttackControl.js for this plugin to work
 //=============================================================================
 /*:
  * @plugindesc More control over the Agiattack rule, support AoE agi Attack
