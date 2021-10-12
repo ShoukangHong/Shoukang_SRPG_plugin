@@ -74,7 +74,7 @@
     //map battle logic
     Scene_Map.prototype.srpgAgiAttackPlus = function(agiUser, target, targetEvents){
         if (agiUser.agi <= target.agi) return;
-        if (!agiUser.canAgiAttack()) return;
+        if (!agiUser.hasAgiAttackAction()) return;
         var agiTime = agiUser.getAgiAttackTime(target);
         var agiAction = _noCost ? agiUser.action(0).createNoCostAction() : agiUser.action(0);
         for (var i = 0; i < agiTime; i++){
@@ -82,7 +82,6 @@
                 this.addAoESkillToAgiList(agiAction, agiUser, targetEvents);
             } else {
                 this.addSkillToAgiList(agiAction, agiUser, target);
-                console.log(agiAction)
             }
         }
     }
@@ -143,7 +142,7 @@
                 var target = battlers[i];
                 var firstBattler = user.agi >= target.agi ? user : target;
                 var secondBattler = user.agi >= target.agi ? target : user;
-                if (firstBattler.canAgiAttack()) {
+                if (firstBattler.hasAgiAttackAction()) {
                     var agiTime = firstBattler.getAgiAttackTime(secondBattler);
                     var agiAction = firstBattler.action(0);
                     if (firstBattler == user && i == 1 && agiTime > 0){
@@ -191,7 +190,7 @@
         this._reserveAction = [];
     }
 
-    Game_Battler.prototype.canAgiAttack = function(){
+    Game_Battler.prototype.hasAgiAttackAction = function(){
         return this.currentAction() && this.currentAction().canAgiAttack();
     }
 
