@@ -1,7 +1,0 @@
-[
-null,
-{"id":1,"list":[{"code":122,"indent":0,"parameters":[1,1,0,0,0]},{"code":230,"indent":0,"parameters":[1]},{"code":101,"indent":0,"parameters":["",0,0,2]},{"code":401,"indent":0,"parameters":["You ran common event 1!"]},{"code":108,"indent":0,"parameters":["Add a button that runs a script call. true on the end makes it work during event"]},{"code":355,"indent":0,"parameters":["Galv.SBTNS.addButton(7,'map2','BtnEvent',340,180,['script','$gamePlayer._animationId = 1;$gameVariables._data[1] += 1'],255);"]},{"code":101,"indent":0,"parameters":["",0,0,2]},{"code":401,"indent":0,"parameters":["\\>Press it right now! Keep pressing as many times as"]},{"code":401,"indent":0,"parameters":["\\>you can! Don't read this, press the button!\\|\\|\\|\\|\\^"]},{"code":355,"indent":0,"parameters":["Galv.SBTNS.removeButton(7);"]},{"code":101,"indent":0,"parameters":["",0,0,2]},{"code":401,"indent":0,"parameters":["You pressed it \\v[1] times!\\|\\|\\|"]},{"code":0,"indent":0,"parameters":[]}],"name":"Button Pressed!","switchId":1,"trigger":0},
-{"id":2,"list":[{"code":0,"indent":0,"parameters":[]}],"name":"","switchId":1,"trigger":0},
-{"id":3,"list":[{"code":0,"indent":0,"parameters":[]}],"name":"","switchId":1,"trigger":0},
-{"id":4,"list":[{"code":0,"indent":0,"parameters":[]}],"name":"","switchId":1,"trigger":0}
-]
