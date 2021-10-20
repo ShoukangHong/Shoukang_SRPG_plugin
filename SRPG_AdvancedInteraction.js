@@ -1,7 +1,7 @@
 //====================================================================================================================
 // SRPG_AdvancedInteraction.js
 //--------------------------------------------------------------------------------------------------------------------
-// free to use and edit     v1.04 include a way to cast wrap skill and warp interaction!
+// free to use and edit     v1.05 fix wrap exceed map boundary bug. Fix object passability bug
 //====================================================================================================================
 /*:
  * @plugindesc Add Advanced interaction for SRPG battle.
@@ -71,6 +71,7 @@
  * Type and eventId are optional, default type is 'circle', default eventId is the target event's Id.
  * If you set the eventId to the active event Id: $gameTemp.activeEvent().eventId(), the actor will wrap.
  * ==========================================================================================================================
+ * v1.05 fix wrap exceed map boundary bug. Fix object passability bug
  * v1.04 include a way to cast wrap skill and warp interaction!
  * v1.03 include Actor-enemy and actor-actor interaction.  Add built-in interactions and <condition:XXXX> note tag
  * v1.02 simplify note tag to <act:xxxx>, support moveafteraction plugin better. New plugin command.
@@ -528,7 +529,7 @@
                 var aoey = y-size + this.targetEvent().posY();
                 if ($gameMap.isLoopVertical()) aoex = ((aoex % width) + width) % width;
                 if ($gameMap.isLoopHorizontal()) aoey = ((aoey % height) + height) % height;
-                if ($gameMap.inArea(x-size, y-size, size, 1, type)) {
+                if ($gameMap.inArea(x-size, y-size, size, 1, type) && $gameMap.isValid(aoex, aoey)) {
                     this.setRangeTable(aoex,aoey, true, null);
                     this.pushMoveList([aoex, aoey, false]);
                 }
@@ -549,6 +550,26 @@
             });
         };
     }
+
+    Game_Event.prototype.canPass = function(x, y, d) {
+        if ($gameSystem.isSRPGMode() && this.isType() == 'object'){
+            var x2 = $gameMap.roundXWithDirection(x, d);
+            var y2 = $gameMap.roundYWithDirection(y, d);
+            if (!$gameMap.isValid(x2, y2)) {
+                return false;
+            }
+            if (this.isThrough() || this.isDebugThrough()) {
+                return true;
+            }
+            if (!this.isMapPassable(x, y, d)) {
+                return false;
+            }
+            if (this.isCollidedWithCharacters(x2, y2)) {
+                return false;
+            }
+            return true;
+        } else return Game_CharacterBase.prototype.canPass.call(this, x, y, d)
+    };
 
     // Game_Character.prototype.setSelected = function(val){
     //     this._isSelected = val;
