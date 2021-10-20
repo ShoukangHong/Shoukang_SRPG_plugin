@@ -383,7 +383,7 @@
 			var currentRegion = $gameMap.regionId(this.posX(), this.posY()) || 0;
 			if (currentRegion === region1) return 'region ' + region2;
 			else if (currentRegion === region2) return 'region ' + region1;
-			else if (a.battleMode() !== 'stand') return 'region ' + region1;
+			else if (a.battleMode() !== 'region ' + region1 && a.battleMode() !== 'region ' + region2) return 'region ' + region1;
 			else return a.battleMode();
 		} else if (meta.match(/keepDist\s+(\d+)/i)){//<aiMove:'keepDist x'>
 			atkDist = meta.match(/keepDist\s+(\d+)/i)[1];
