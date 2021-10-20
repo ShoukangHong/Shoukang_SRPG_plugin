@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_AuraSkill.js
 //-----------------------------------------------------------------------------
-// Free to use and edit   v1.05 Now Unitevent/object can have Aura effect!
+// Free to use and edit   version 1.06 fix bug for aura range 0. Fix bug for not removing states properly
 //=============================================================================
 /*:
  * @plugindesc This plugin allows you to create Aura skills for SRPG battle. Place it below all SRPG plugins for best compatibility.
@@ -70,6 +70,7 @@
  * You may want to use some other plugins like ALOE_ItemSkillSortPriority to put a passive aura skill to the end of 
  * your skill list.
  * ==========================================================================================================================
+ * version 1.06 fix bug for aura range 0. Fix bug for not removing states properly
  * version 1.05 support aura for unitevents and objects!
  * version 1.04 show aura range on movetable!
  * version 1.03 add state note tags for active aura skills. Fix issues of states without <SRPGAura>
@@ -169,13 +170,12 @@
 
 	Game_Battler.prototype.clearAura = function() {
 		var statelist = this.states();
-		for (i = 0; i<statelist.length; i++){
+		for (i = statelist.length - 1; i >= 0; i--){
 			if (statelist[i].meta.SRPGAura) {
-//                this.removeState(statelist[i].id);
-				this._states.splice(i, 1);
-				this.refresh();//v1.05 added, not sure if it's necessary
+				this.eraseState(statelist[i].id)//v1.06 update
 			}
 		}
+		this.refresh();
 	};
 
 	Game_Temp.prototype.refreshAura = function(userevent) {
@@ -206,7 +206,7 @@
 	Game_Temp.prototype.isAuraStateValid = function(item, usertype, ownertype, dx, dy) {
 		if (item.meta.SRPGAuraState){
 			var type = item.meta.SRPGAuraTarget || _defaultTarget;
-			var range = Number(item.meta.SRPGAuraRange) || _defaultRange;
+			var range = Number(item.meta.SRPGAuraRange || _defaultRange);
 			var shape = item.meta.SRPGAuraShape || _defaultShape;
 			var minrange = Number(item.meta.SRPGAuraMinRange) || 0;
 			if (!$gameMap.inArea(dx, dy, range, minrange, shape, 0)) return false;
