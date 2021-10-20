@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_MoveAfterAction.js
 //-----------------------------------------------------------------------------
-// Free to use and edit   version 1.02 fix bug for auto battle, can auto select actor if the actor can do move after action
+// Free to use and edit   version 1.03 fix bug for not clearing movetile after action
 //=============================================================================
 /*:
  * @plugindesc 
@@ -18,6 +18,7 @@
  * <MoveAfterAction>    with this note tag the actor can move again when it has remaining move.
  * Enemy units and auto battle actors can not move after action, because they don't know how to use it.
  * ==========================================================================================================================
+ * version 1.03 fix bug for not clearing movetile after action
  * version 1.02 fix bug for auto battle, can auto select actor if the actor can do move after action
  * version 1.01 enable state notetags
  * version 1.00 first release!
@@ -145,6 +146,14 @@
         if (result === true) return true;
         return shoukang_Scene_Map_isSrpgActorTurnEnd.call(this);
     };
+
+    var shoukang_Game_System_clearData = Game_System.prototype.clearData;
+    Game_System.prototype.clearData = function() {
+        $gameTemp.clearMoveTable();
+        $gameTemp.setResetMoveList(true);
+        shoukang_Game_System_clearData.call(this);
+    };
+
 //reset values on turn end.
     var shoukang_Game_Battler_onTurnEnd = Game_Battler.prototype.onTurnEnd;
     Game_Battler.prototype.onTurnEnd = function() {
