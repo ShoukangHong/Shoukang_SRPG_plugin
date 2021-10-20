@@ -1,7 +1,7 @@
 //====================================================================================================================
 // SRPG_BattlePrepare.js
 //--------------------------------------------------------------------------------------------------------------------
-// free to use and edit    V1.05 Support for SRPG_AdvancedInteraction
+// free to use and edit    V1.06 Fix bug for set min actor, fix bug for save file
 //====================================================================================================================
 /*:
  * @plugindesc Add battle Prepare phase at the beginning of SRPG battle.
@@ -77,6 +77,7 @@
  * If you have a specific actor number requirement, run these script calls after the 'SRPGBattle Start' plugin command.
  * These max and min numbers will be erased in the next battle.
  *==========================================================================================================================
+ * V1.06 Fix bug for set min actor, fix bug for save file
  * V1.05 Support for SRPG_AdvancedInteraction
  * V1.04 Fixed some small issues
  * V1.03 Enjoy the new Appearance and features!
@@ -236,6 +237,15 @@
 
     Game_Party.prototype.setMinActor = function(num){
         this._srpgMinActor = num;
+        var eventList = $gameMap.events();
+        for (var i = 0; i < eventList.length; i++) {
+            if (this.getMinActor() <= this.getCurrentActorNumber()) return;
+            var event = eventList[i];
+            var battleArray = $gameSystem.EventToUnit(event.eventId());
+            if (event.event().meta.type === 'actor' && (!battleArray || !battleArray[1])){
+                $gameParty.srpgBattlePrepareSelectEmptyActor(event, this._remainingActorList.pop());
+            }
+        }
     }
 
     Game_Party.prototype.getMinActor = function(){
@@ -307,10 +317,9 @@
 //=====================================================================================================================
 //Edit other functions to support the prepare phase appearance
 //=====================================================================================================================
-
 //Show all party members in prepare phase
-    var _SRPG_Game_Party_members = Game_Party.prototype.members;
-    Game_Party.prototype.members = function() {
+    var _SRPG_Game_Party_allMembers = Game_Party.prototype.allMembers;
+    Game_Party.prototype.allMembers = function() {
         if ($gameSystem.isSRPGMode() == true && $gameSystem.isBattlePhase() === 'battle_prepare') {
             var members = this._actors.map(function(id) {
                 return $gameActors.actor(id);
@@ -323,6 +332,13 @@
             });
             this._srpgPrepareAllActors = members.map(function(actor){return actor.actorId()});
             return members;
+        } else return _SRPG_Game_Party_allMembers.call(this);
+    };
+
+    var _SRPG_Game_Party_members = Game_Party.prototype.members;
+    Game_Party.prototype.members = function() {
+        if ($gameSystem.isSRPGMode() == true && $gameSystem.isBattlePhase() === 'battle_prepare') {
+            return this.allMembers();
         } else return _SRPG_Game_Party_members.call(this);
     };
 
