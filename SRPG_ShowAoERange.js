@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_ShowAoERange.js
 //-----------------------------------------------------------------------------
-//Free to use and edit    v.1.03 Improved algorithm, no it's much faster!
+//Free to use and edit     v.1.04 Fix bug for range 0 skills
 // Complexity change from O(m^2 * r^2 * a^2 * 4^3) to O((m + r)^2 * a^2 * 4^2), much faster!
 //=============================================================================
 /*:
@@ -29,7 +29,7 @@
  * Tiles within attack range will be colored red, tiles not within attack range but within AoE range
  * will be colored differently.
  * ====================================================================================================
- * to do: improve algorithm. Now the worst case complexity is O(move^2 range^2 * AoeRange^2 * skillNumber)
+ * v.1.04 Fix bug for range 0 skills
  * v.1.03 Improved algorithm, no it's much faster!
  * Complexity change from O(m^2 * r^2 * a^2 * 4^3) to O((m + r)^2 * a^2 * 4^2) !
  * v 1.02 add range of default srpg attack skill. Support loop map.
@@ -57,7 +57,7 @@
 		if (!$gameMap.isEventRunning() && ($gameSystem.isBattlePhase() === 'actor_phase' &&
 		$gameSystem.isSubBattlePhase() === 'normal' || $gameSystem.isBattlePhase() === 'battle_prepare')){
 			var user = $gameSystem.EventToUnit(event.eventId())[1];
-		    $gameTemp.makeSearchedAoETable();
+		  $gameTemp.makeSearchedAoETable();
 			$gameTemp.clearMoveTable();
 			event.makeMoveTable(event.posX(), event.posY(), user.srpgMove(), null, user.srpgThroughTag());
 			user.skills().forEach(function(item){//all skills
@@ -91,9 +91,8 @@
 		var minRange = user.srpgSkillMinRange(skill);
 		var width = $gameMap.width();
 		var height = $gameMap.height();
-		var edges = [];
-		if (range > 0) edges = [[x, y, range, [0], []]];
-		else $gameTemp.setAoETable(x, y, areaRange, areaminRange, shape, d);
+		var edges = [[x, y, range, [0], []]];
+		if (range == 0) $gameTemp.setAoETable(x, y, areaRange, areaminRange, shape, d, skill, range, [0]);
 		if (minRange <= 0 && $gameTemp.RangeTable(x, y)[0] < 0) {
 			if ($gameTemp.MoveTable(x, y)[0] < 0) $gameTemp.pushRangeList([x, y, true]);
 			$gameTemp.setRangeTable(x, y, range, [0]);
