@@ -166,7 +166,7 @@
 //only show wait command when after action move.
     var shoukang_Window_ActorCommand_makeCommandList = Window_ActorCommand.prototype.makeCommandList;
     Window_ActorCommand.prototype.makeCommandList = function() {
-        if ($gameSystem.isSRPGMode() == true && $gameTemp.activeEvent() && $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1].isSrpgAfterActionMove()) {
+        if ($gameSystem.isSRPGMode() == true && this._actor && this._actor.isSrpgAfterActionMove()) {
                 this.addWaitCommand();
         } else {
             shoukang_Window_ActorCommand_makeCommandList.call(this);
