@@ -2,7 +2,7 @@
 //SRPG_Summon.js
 //=============================================================================
 /*:
- * @plugindesc Allow you to summon/enemy/objects during SRPG battle. v 1.00
+ * @plugindesc Allow you to summon actor/enemy/objects during SRPG battle. v 1.00
  * @author Shoukang
  *
  * @param Summon Map Id
