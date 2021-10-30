@@ -2,7 +2,7 @@
 //SRPG_Summon.js
 //=============================================================================
 /*:
- * @plugindesc Allow you to summon actor/enemy/objects during SRPG battle. v 1.00
+ * @plugindesc Allow you to summon/enemy/objects during SRPG battle. v 1.01 add aoe summon, fix bugs.
  * @author Shoukang
  *
  * @param Summon Map Id
@@ -27,7 +27,7 @@
  * objects. You can even use this plugin to summon objects out of an SRPG battle!(summoned events will not be memorized)
  * 
  * You don't need any place holder event to summon. A new event will be created, which have the event id =
- * $gameMap.events().length (this is before the summon, after summon the length will of course increase by 1).
+ * $gameMap.nextEventId() (this is before the summon, after summon the length will of course increase by 1).
  *
  * By calling an common event in your skill effect, you can summon multiple same actors/enemies/objects, set their level,
  * their life span, etc. Please read the script calls for more information.
@@ -35,6 +35,7 @@
  * ===================================================================================================
  * Compatibility:
  * Need Dr.Q's SRPG_PositionEffect plugin to use the <cellTarget> note tag so that you can target an empty cell.
+ * Need SRPG_AoE in my bug fix patch if you use AoE summon. It fixed a bug for aoe cellTarget.
  * However the enemy still won't know how to cast skill without a target.
  * ===================================================================================================
  * script calls:
@@ -57,10 +58,14 @@
  *     variable a. Then you can use a.mat, a.level and other formulars to determine summoned batter level and summon turns.
  *     For example this.summon('actor', 1, 2, a.level, a.mat/10)
  *
+ * this.AoESummon(type, summonId, battlerId, level, turn);
+ *     Same, use this for an AoE summon skill to summon multiple units.
+ *
  * $gameParty.existingMemberNumber();
  *     gives the number of alive party members, which doesn't take summoned actors into consideration.
  *     Can be used to check game end condition.
  * ===================================================================================================
+ * v 1.01 add aoe summon, fix bugs.
  * v 1.00 First Release
  */
 
@@ -105,19 +110,32 @@
     //load the summon data while loading this plugin.
     DataManager.loadSummonData(_SummonMapId);
 
+    Game_Interpreter.prototype.AoESummon = function(type, summonId, battlerId, level, turn){
+        var aoe = $gameTemp._activeAoE;
+        var rlim = 1 + aoe.size * 2;
+        for (var m = 0; m < rlim; ++m) {
+            for (var n =0; n < rlim; ++n) {
+                var x = $gameMap.roundX($gamePlayer.posX() + m - aoe.size);
+                var y = $gameMap.roundY($gamePlayer.posY() + n - aoe.size);
+                if ($gameMap.isValid(x, y) && $gameMap.inArea(m-aoe.size, n-aoe.size, aoe.size, aoe.minSize, aoe.shape, aoe.dir)) {
+                    this.summon(type, summonId, battlerId, level, turn, x, y);
+                }
+            }
+        }
+    }
+
     //script call
     Game_Interpreter.prototype.summon = function(type, summonId, battlerId, level, turn, x, y){
         if (x === undefined) x = $gamePlayer.posX();
         if (y === undefined) y = $gamePlayer.posY();
-        if (!$gameMap.isValid(x,y) || !$gameMap.positionIsOpen(x,y)) return;
-
         if (!turn) turn = Number.POSITIVE_INFINITY;
+        if (!$gameMap.isValid(x,y) || !$gameMap.fourDirectionPassable(x, y) || !$gameMap.positionIsOpen(x, y)) return;
         if ($gameTemp.activeEvent() && $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())){
+            $gameTemp.activeEvent().turnTowardCharacter($gamePlayer);
             var summoner = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
         } else {
             var summoner = null;
         }
-
         var eventId = $gameMap.nextEventId();
         var summonEvent = new Game_SummonEvent($gameMap.mapId(), eventId, summonId, summoner, turn, x, y);
         $gameMap.addEvent(summonEvent);
@@ -125,9 +143,7 @@
             this.addSummonActor(eventId, battlerId, level);
         } else if (type == 'enemy'){
             this.addSummonEnemy(eventId, battlerId);
-        } else if (type == 'object'){
-            summonEvent.setType('object');
-        }
+        } else summonEvent.setType(type);
 
         if (SceneManager._scene instanceof Scene_Map){
             SceneManager._scene._spriteset.createCharacters();
@@ -174,6 +190,13 @@
         $gameMap.setEventImages();
         var oldValue = $gameVariables.value(_existEnemyVarID);
         $gameVariables.setValue(_existEnemyVarID, oldValue + 1);
+        return true;
+    };
+
+    Game_Map.prototype.fourDirectionPassable = function(x, y) {
+        for (var d = 2; d < 10; d+=2){
+            if (!this.isPassable(x, y, d)) return false;
+        }
         return true;
     };
 
