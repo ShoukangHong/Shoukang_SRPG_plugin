@@ -2,7 +2,7 @@
 //SRPG_Summon.js
 //=============================================================================
 /*:
- * @plugindesc Allow you to summon/enemy/objects during SRPG battle. v 1.01 add aoe summon, fix bugs.
+ * @plugindesc Allow you to summon/enemy/objects during SRPG battle. v 1.01 add aoe summon, fix bugs, enable more summon event types.
  * @author Shoukang
  *
  * @param Summon Map Id
@@ -42,7 +42,7 @@
  * script calls:
  *
  * this.summon(type, summonId, battlerId, level, turn, x, y);
- *     type: can be 'actor', 'enemy', or 'object'.
+ *     type: can be 'actor', 'enemy', or 'object', or other valid types.
  *     summonId: the id of the event that you are going to copy from the Summon Map.
  *     battlerId: the id of actor/enemy.
  *     level: the level of summoned actor, default is initial level of actor.
@@ -66,7 +66,7 @@
  *     gives the number of alive party members, which doesn't take summoned actors into consideration.
  *     Can be used to check game end condition.
  * ===================================================================================================
- * v 1.01 add aoe summon, fix bugs.
+ * v 1.01 add aoe summon, fix bugs, enable more summon event types.
  * v 1.00 First Release
  */
 
