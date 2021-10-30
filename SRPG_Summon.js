@@ -22,6 +22,7 @@
  *
  * This plugin allow you to summon events which are a copy of event from the summon map (the map with Summon Map Id).
  * You need to place all the type of events you want to summon in the summon map.
+ * Summon units on unpassable tiles will be ignored.
  *
  * Although summoning battlers just need an empty event to refer to, this mechanism could be very helpful for summoning
  * objects. You can even use this plugin to summon objects out of an SRPG battle!(summoned events will not be memorized)
