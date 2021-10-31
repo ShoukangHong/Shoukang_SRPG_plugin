@@ -6,11 +6,11 @@ With my plugin, you can enjoy many new functional features including Battle prep
 
 https://forums.rpgmakerweb.com/index.php?threads/srpg-engine-plugins-for-creating-turn-based-strategy-game.110366/
 
-### Demo game is now available! Try it here:
+### Demo game is now available! Try the new features here:
 
 https://shoukanghong.github.io/Shoukang_SRPG_plugin/ShoukangSRPGDemo/
 
-## Battle Prepare
+## Battle Preparation
 Add battle preparation phase at the beginning of SRPG battle. It allows you to change, remove, add battlers, and switch battler positions before the battle.
 You can also view enemies, shop, and manage equipment before the battle.
 
