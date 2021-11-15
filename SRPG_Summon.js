@@ -251,7 +251,7 @@
 
     var _Scene_Menu_createCommandWindow = Scene_Menu.prototype.createCommandWindow;
     Scene_Menu.prototype.createCommandWindow = function() {
-        if ($gameSystem.isSRPGMode() == true) {
+        if ($gameSystem.isSRPGMode() == true && $gameSystem.isBattlePhase() !== 'battle_prepare') {
             $gameSystem.refreshSrpgAllActors();
         }
         _Scene_Menu_createCommandWindow.call(this);
