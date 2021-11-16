@@ -153,7 +153,6 @@
         if (this._tagId !== tagId || this._unitData !== unitData){
             this._tagId = tagId;
             this._unitData = unitData;
-            console.log(unitData)
             this.contents.clear();
             this.updatePlacement();
             this.drawContents();
