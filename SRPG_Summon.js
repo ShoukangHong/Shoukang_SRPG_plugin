@@ -38,6 +38,7 @@
  * Need Dr.Q's SRPG_PositionEffect plugin to use the <cellTarget> note tag so that you can target an empty cell.
  * Need SRPG_AoE in my bug fix patch if you use AoE summon. It fixed a bug for aoe cellTarget.
  * However the enemy still won't know how to cast skill without a target.
+ * Place below SRPG_MapBattle. Or just delete the 'utility functions for finding unit events' section in SRPG_MapBattle.
  * ===================================================================================================
  * script calls:
  *
