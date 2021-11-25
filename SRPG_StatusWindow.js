@@ -28,12 +28,17 @@
  *
  * @help
  *
- * This plugin allows you to show multiple status pages in SRPG battle. Click Ok will go to next page, click cancel will close the window.
+ * This plugin allows you to show multiple status pages in SRPG battle.
+ * Click Ok will go to next page, click cancel will close the window.
  * You need to code yourself to show the contents.
  * I left the TODO notes and examples for you to DIY your status window. Just serch for 'TODO',
  * and play around with the code. Drawing text is easy to learn.(but hard to master).
  * If you scroll to the bottom I also copy and paste some functions used (such as 'drawBasicInfoActor')
  * so you know what they are doing.
+ * The example code as well as the code copied from core plugin have many 'magic numbers'... Which is not a good
+ * coding example. It's usually better to replace the numbers with variables. For example number 6 is actually this.textPadding(),
+ * values such as 192... should derive from calculations like _width/2 - this.standardpadding() + this.textPadding();
+ * This will make your code more maintainable, especially when you want to change the window width and other parameters someday.
  * ==========================================================================================================================
  * Compatibility:
  * Place it below SRPG_UX_Window and SRPG_BattleUI
