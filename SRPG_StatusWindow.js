@@ -28,7 +28,7 @@
  *
  * @help
  *
- * This plugin allows you to show multiple status pages in SRPG battle.
+ * This plugin allows you to show multiple status pages in SRPG battle. Click Ok will go to next page, click cancel will close the window.
  * You need to code yourself to show the contents.
  * I left the TODO notes and examples for you to DIY your status window. Just serch for 'TODO',
  * and play around with the code. Drawing text is easy to learn.(but hard to master).
