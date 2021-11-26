@@ -1,7 +1,7 @@
 //====================================================================================================================
 // SRPG_StatusWindow.js
 //--------------------------------------------------------------------------------------------------------------------
-// free to use and edit    V1.00 First Release
+// free to use and edit    v1.01 Remove all magic numbers! Better compatibility and easier to change the format! Most farwing functions are overwritten here.
 //====================================================================================================================
 /*:
  * @plugindesc This plugin allows you to show multiple status pages in SRPG battle and open status window from actor command window
@@ -25,25 +25,26 @@
  * @desc Number of pages the status window have
  * @type number
  * @default 3
+
+ * @param textSrpgSkills
+ * @desc Name of skills show on SRPG status window.
+ * @default Skills
  *
  * @help
  *
  * This plugin allows you to show multiple status pages in SRPG battle.
  * Click Ok will go to next page, click cancel will close the window.
  * You need to code yourself to show the contents.
- * I left the TODO notes and examples for you to DIY your status window. Just serch for 'TODO',
+ * I left some notes, examples and built-in methods for you to DIY your status window. Just serch for 'TODO', and 'Important'
  * and play around with the code. Drawing text is easy to learn.(but hard to master).
- * If you scroll to the bottom I also copy and paste some functions used (such as 'drawBasicInfoActor')
- * so you know what they are doing.
- * The example code as well as the code copied from core plugin have many 'magic numbers'... Which is not a good
- * coding example. It's usually better to replace the numbers with variables. For example number 6 is actually this.textPadding(),
- * values such as 192... should derive from calculations like _width/2 - this.standardpadding() + this.textPadding();
- * This will make your code more maintainable, especially when you want to change the window width and other parameters someday.
+ *
+ * If this version looks too scary, you can try the old version in my github--shoukang_SRPG_Plugins--OldVersion folder.
  * ==========================================================================================================================
  * Compatibility:
  * Place it below SRPG_UX_Window and SRPG_BattleUI
  * =========================================================================================================================
- * v1.00 first release!
+ * v1.01 Remove all magic numbers! Better compatibility and easier to change the format! Most farwing functions are overwritten here.
+ * v1.00 First release!
  */
 
 (function(){
@@ -52,14 +53,24 @@
     var _width = Number(params['window width'] || 408);
     var _height = Number(params['windowHeight'] || 10);
     var _pages = Number(params['number of pages'] || 3);
+    var _textSkills = params['textSrpgSkills'] || 'Skills';
 
-    var _Window_SrpgStatus_initialize = Window_SrpgStatus.prototype.initialize
-    Window_SrpgStatus.prototype.initialize = function(x, y) {
-        _Window_SrpgStatus_initialize.call(this, x, y);
-        this._page = 0;
-        this.refresh();
-    };
+    //parameters from core.
+    var parameters = PluginManager.parameters('SRPG_core');
+    var _enemyDefaultClass = parameters['enemyDefaultClass'] || 'エネミー';
+    var _textSrpgEquip = parameters['textSrpgEquip'] || '装備';
+    var _textSrpgMove = parameters['textSrpgMove'] || '移動力';
+    var _textSrpgRange = parameters['textSrpgRange'] || '射程';
+    var _textSrpgWait = parameters['textSrpgWait'] || '待機';
+    var _textSrpgTurnEnd = parameters['textSrpgTurnEnd'] || 'ターン終了';
+    var _textSrpgAutoBattle = parameters['textSrpgAutoBattle'] || 'オート戦闘';
+    var _srpgBattleQuickLaunch = parameters['srpgBattleQuickLaunch'] || 'true';
+    var _srpgActorCommandEquip = parameters['srpgActorCommandEquip'] || 'true';
+    var _srpgBattleEndAllHeal = parameters['srpgBattleEndAllHeal'] || 'true';
 
+//========================================================================================================
+//Realize multiple page interaction.
+//========================================================================================================
     var _SRPG_Game_Player_triggerAction = Game_Player.prototype.triggerAction;
     Game_Player.prototype.triggerAction = function() {
         if ($gameSystem.isSRPGMode() && $gameSystem.isSubBattlePhase() === 'status_window') {
@@ -171,10 +182,48 @@
         _Window_ActorCommand_addWaitCommand.call(this);
     };
 
-    var _Window_SrpgStatus_clearBattler = Window_SrpgStatus.prototype.clearBattler
-    Window_SrpgStatus.prototype.clearBattler = function() {
+//========================================================================================================
+//Overwrite Window_SrpgStatus functions
+//========================================================================================================
+    var _Window_SrpgStatus_initialize = Window_SrpgStatus.prototype.initialize
+    Window_SrpgStatus.prototype.initialize = function(x, y) {
+        _Window_SrpgStatus_initialize.call(this, x, y);
         this._page = 0;
-        _Window_SrpgStatus_clearBattler.call(this);
+        this.refresh();
+    };
+
+    Window_SrpgStatus.prototype.refresh = function() {
+        this.contents.clear();
+        this.loadFormat();
+        if (!this._battler) {
+          return;
+        }
+        if (this._type === 'actor') {
+            this.drawContentsActor();
+        } else if (this._type === 'enemy') {
+            this.drawContentsEnemy();
+        }
+    };
+
+    //Important: Format information for most layout! You can change the values to change the layout.
+    Window_SrpgStatus.prototype.loadFormat = function() {
+        var fmt = {}
+        fmt.lh = this.lineHeight();                                     //line height
+        fmt.tp = this.textPadding();                                    //text padding
+        fmt.sp = this.standardPadding();                                //standard padding
+        fmt.hw = Math.floor((this.windowWidth() + fmt.tp)/2) - fmt.sp;  //half width, aka start position of column 2
+        fmt.fw = Window_Base._faceWidth;                                //face width
+        fmt.lw = Math.floor((fmt.hw - 2 * fmt.tp) *2/3);                //label width (for example: ATK, DEF, etc)
+        fmt.cw = fmt.hw - fmt.lw - 3 * fmt.tp;                          //content width (for example: a.atk, a.def, etc)
+        fmt.gaugeWidth = 186;                                           //hp, mp, tp gauge width
+        fmt.halfGaugeWidth = Math.floor((fmt.gaugeWidth - fmt.tp)/2);   //hp, mp, tp gauge width, when put 2 in 1 row
+        fmt.equipLabelWidth = fmt.lw + fmt.cw - Window_Base._iconWidth;
+        fmt.equipContentWidth = this.windowWidth() - fmt.equipLabelWidth - 2 * fmt.tp - 2 * fmt.sp;
+        fmt.itemLabelWidth = fmt.equipLabelWidth;
+        fmt.itemValueWidth = fmt.cw;                                    //tp cost, mp cost, etc.
+        fmt.itemNameWidth = fmt.equipContentWidth - fmt.itemValueWidth;
+
+        this._format = fmt; //store the format
     };
 
     Window_SrpgStatus.prototype.windowWidth = function() {
@@ -191,155 +240,249 @@
     };
 
     Window_SrpgStatus.prototype.drawContentsActor = function() {
-        var lineHeight = this.lineHeight();
-        if (this._page == 0){ 
-            //TODO: this part is for page 0
-            this.drawActorName(this._battler, 6, lineHeight * 0);
-            this.drawActorClass(this._battler, 192, lineHeight * 0);
-            this.drawActorFace(this._battler, 6, lineHeight * 1);
-            this.drawBasicInfoActor(176, lineHeight * 1);
-            this.drawActorSrpgEqiup(this._battler, 6, lineHeight * 5);
-            this.drawParameters(6, lineHeight * 6);
-            this.drawSrpgParameters(6, lineHeight * 9);
+        //all the format parameters are determined in Window_SrpgStatus.prototype.loadFormat! Take a look to understand all the symbols.
+        var lh = this._format.lh;
+        var tp = this._format.tp;
+        var sp = this._format.sp;
+        var hw = this._format.hw;
+        var fw = this._format.fw;
+        var lw = this._format.lw;
+        var cw = this._format.cw;
+        var a = this._battler; //battler
+
+        //TODO: basic information that shows on all pages, the code here is just an example
+        this.drawActorName(a, tp, lh * 0);
+        this.drawActorClass(a, hw + tp, lh * 0);
+        this.drawActorFace(a, tp, lh * 1);
+        this.drawBasicInfoActor(fw + 3 * tp, lh * 1);
+
+        if (this._page == 0 || $gameSystem.isSubBattlePhase() == 'battle_window'){ //page 0 is always displayed on battle prediction window, you can also make prediction window a unique page
+            //TODO: this part is for page 0, the code here is just an example
+            this.drawEquipments([a.weapons()[0]], tp, lh * 5);
+            this.drawParameters(tp, lh * 6);
+            this.drawSrpgParameters(tp, lh * 9);
         } else if (this._page == 1){
             //TODO: this part is for page 1, the code here is just an example
-            this.drawActorFace(this._battler, 6, lineHeight * 1);
-            this.drawBasicInfoActor(176, lineHeight * 1);
-            this.drawText('actor page 1', 6, lineHeight * 0);
-            //an example to draw element rate
-            this.changeTextColor(this.systemColor());
-            this.drawText('fire', 6, lineHeight * 5, 120);
-            this.drawText('ice', 6, lineHeight * 6, 120);
-            this.resetTextColor();
-            this.drawText(this._battler.elementRate(2) * 100 + '%', 6 + 120, lineHeight * 5, 48, 'right');
-            this.drawText(this._battler.elementRate(3) * 100 + '%', 6 + 120, lineHeight * 6, 48, 'right');
+            this.drawEquipments(a.equips(), tp, lh * 5);
         } else if (this._page == 2){
             //TODO: this part is for page 2, the code here is just an example
-            this.drawText('actor page 2', 6, lineHeight * 0)
-
-            //an example to draw equipments
-            var equips = this._battler.equips();
-            var count = equips.length;
-            for (var i = 0; i < count; i++) {
-                this.drawItemName(equips[i], 6, lineHeight * 1 + this.lineHeight() * i);
-            }
+            this.drawElemets(tp, lh * 5);
         }
         //Feel free to add/remove pages.
     };
 
     Window_SrpgStatus.prototype.drawContentsEnemy = function() {
-        var lineHeight = this.lineHeight();
-        if (this._page == 0){
-            //TODO: this part is for page 0
-            this.drawActorName(this._battler, 6, lineHeight * 0);
-            this.drawEnemyClass(this._battler, 192, lineHeight * 0);
-            this.drawEnemyFace(this._battler, 6, lineHeight * 1);
-            this.drawBasicInfoEnemy(176, lineHeight * 1);
-            this.drawEnemySrpgEqiup(this._battler, 6, lineHeight * 5);
-            this.drawParameters(6, lineHeight * 6);
-            this.drawSrpgParameters(6, lineHeight * 9);
+        //all the format parameters are determined in Window_SrpgStatus.prototype.loadFormat! Take a look to understand all the symbols.
+        var lh = this._format.lh;
+        var tp = this._format.tp;
+        var sp = this._format.sp;
+        var hw = this._format.hw;
+        var fw = this._format.fw;
+        var lw = this._format.lw;
+        var cw = this._format.cw;
+        var a = this._battler;
+
+        //TODO: basic information that shows on all pages, the code here is just an example
+        this.drawActorName(a, tp, lh * 0);
+        this.drawEnemyClass(a, hw + tp, lh * 0);
+        this.drawEnemyFace(a, tp, lh * 1);
+        this.drawBasicInfoEnemy(fw + 3 * tp, lh * 1);
+
+        if (this._page == 0 || $gameSystem.isSubBattlePhase() == 'battle_window'){//page 0 is always displayed on battle prediction window, you can also make prediction window a unique page
+            //TODO: this part is for page 0, the code here is just an example
+            this.drawEquipments([$dataWeapons[Number(a.enemy().meta.srpgWeapon)]], tp, lh * 5);
+            this.drawParameters(tp, lh * 6);
+            this.drawSrpgParameters(tp, lh * 9);
         } else if (this._page == 1){
             //TODO: this part is content for page 1, the code here is just an example
-            this.drawEnemyFace(this._battler, 6, lineHeight * 1);
-            this.drawBasicInfoEnemy(176, lineHeight * 1);
-            this.drawText('enemy page 1', 6, lineHeight * 0);
-
-            //an example to draw element rate
-            this.changeTextColor(this.systemColor());
-            this.drawText('fire', 6, lineHeight * 5, 120);
-            this.drawText('ice', 6, lineHeight * 6, 120);
-            this.resetTextColor();
-            this.drawText(this._battler.elementRate(2) * 100 + '%', 6 + 120, lineHeight * 5, 48, 'right');
-            this.drawText(this._battler.elementRate(3) * 100 + '%', 6 + 120, lineHeight * 6, 48, 'right');
+            this.drawSkills(tp, lh * 5);
         } else if (this._page == 2){
-            //TODO: this part is content for page 2
-            this.drawText('enemy page 2', 6, lineHeight * 0)
+            //TODO: this part is content for page 1, the code here is just an example;
+            this.drawElemets(tp, lh * 5);
         }
         //Feel free to add/remove pages.
     };
 
-/* copied from SRPG_Core for reference, you can uncomment it and edit here to change whatever.
-    //parameters from core.
-    var parameters = PluginManager.parameters('SRPG_core');
-    var _enemyDefaultClass = parameters['enemyDefaultClass'] || 'エネミー';
-    var _textSrpgEquip = parameters['textSrpgEquip'] || '装備';
-    var _textSrpgMove = parameters['textSrpgMove'] || '移動力';
-    var _textSrpgRange = parameters['textSrpgRange'] || '射程';
-    var _textSrpgWait = parameters['textSrpgWait'] || '待機';
-    var _textSrpgTurnEnd = parameters['textSrpgTurnEnd'] || 'ターン終了';
-    var _textSrpgAutoBattle = parameters['textSrpgAutoBattle'] || 'オート戦闘';
-    var _srpgBattleQuickLaunch = parameters['srpgBattleQuickLaunch'] || 'true';
-    var _srpgActorCommandEquip = parameters['srpgActorCommandEquip'] || 'true';
-    var _srpgBattleEndAllHeal = parameters['srpgBattleEndAllHeal'] || 'true';
 
-    Window_SrpgStatus.prototype.refresh = function() {
-        this.contents.clear();
-        if (!this._battler) {
-          return;
-        }
-        if (this._type === 'actor') {
-            this.drawContentsActor();
-        } else if (this._type === 'enemy') {
-            this.drawContentsEnemy();
-        }
-    };
-
+//========================================================================================================
+//Important: Built-in methods (Replaced those in SRPG-Core)
+//========================================================================================================
     Window_SrpgStatus.prototype.drawBasicInfoActor = function(x, y) {
-        var lineHeight = this.lineHeight();
-        this.drawSrpgExpRate(this._battler, x, y + lineHeight * 0);
-        this.drawActorLevel(this._battler, x, y + lineHeight * 0);
-        this.drawActorIcons(this._battler, x, y + lineHeight * 1);
-        this.drawActorHp(this._battler, x, y + lineHeight * 2);
+        var tp = this._format.tp;
+        var lh = this._format.lh;
+        var gaugeWidth = this._format.gaugeWidth;
+        var halfGaugeWidth = this._format.halfGaugeWidth;
+        var a = this._battler;
+
+        this.drawSrpgExpRate(a, x, y + lh * 0);
+        this.drawActorLevel(a, x, y + lh * 0);
+        this.drawActorIcons(a, x, y + lh * 1);
+        this.drawActorHp(a, x, y + lh * 2, gaugeWidth);
         if ($dataSystem.optDisplayTp) {
-            this.drawActorMp(this._battler, x, y + lineHeight * 3, 90);
-            this.drawActorTp(this._battler, x + 96, y + lineHeight * 3, 90);
+            this.drawActorMp(a, x, y + lh * 3, halfGaugeWidth);
+            this.drawActorTp(a, x + halfGaugeWidth + tp, y + lh * 3, halfGaugeWidth);
         } else {
-            this.drawActorMp(this._battler, x, y + lineHeight * 3);
+            this.drawActorMp(a, x, y + lh * 3, gaugeWidth);
         }
     };
 
     Window_SrpgStatus.prototype.drawBasicInfoEnemy = function(x, y) {
-        var lineHeight = this.lineHeight();
-        this.drawEnemyLevel(this._battler, x, y + lineHeight * 0);
-        this.drawActorIcons(this._battler, x, y + lineHeight * 1);
-        this.drawActorHp(this._battler, x, y + lineHeight * 2);
+        var tp = this._format.tp;
+        var lh = this._format.lh;
+        var gaugeWidth = this._format.gaugeWidth;
+        var halfGaugeWidth = this._format.halfGaugeWidth;
+        var a = this._battler;
+
+        this.drawEnemyLevel(a, x, y + lh * 0);
+        this.drawActorIcons(a, x, y + lh * 1);
+        this.drawActorHp(a, x, y + lh * 2, gaugeWidth);
         if ($dataSystem.optDisplayTp) {
-            this.drawActorMp(this._battler, x, y + lineHeight * 3, 90);
-            this.drawActorTp(this._battler, x + 96, y + lineHeight * 3, 90);
+            this.drawActorMp(a, x, y + lh * 3, halfGaugeWidth);
+            this.drawActorTp(a, x + halfGaugeWidth + tp, y + lh * 3, halfGaugeWidth);
         } else {
-            this.drawActorMp(this._battler, x, y + lineHeight * 3);
+            this.drawActorMp(a, x, y + lh * 3, gaugeWidth);
         }
     };
 
     Window_SrpgStatus.prototype.drawParameters = function(x, y) {
-        var lineHeight = this.lineHeight();
+        var tp = this._format.tp;
+        var lh = this._format.lh;
+        var hw = this._format.hw;
+        var lw = this._format.lw;
+        var cw = this._format.cw;
+        var a = this._battler;
+
         for (var i = 0; i < 6; i++) {
             var paramId = i + 2;
-            var x2 = x + 188 * (i % 2);
-            var y2 = y + lineHeight * Math.floor(i / 2);
+            var x2 = x + hw * (i % 2);
+            var y2 = y + lh * Math.floor(i / 2);
             this.changeTextColor(this.systemColor());
-            this.drawText(TextManager.param(paramId), x2, y2, 120);
+            this.drawText(TextManager.param(paramId), x2, y2, lw);
             this.resetTextColor();
-            this.drawText(this._battler.param(paramId), x2 + 120, y2, 48, 'right');
+            this.drawText(a.param(paramId), x2 + lw, y2, cw, 'right');
         }
     };
 
     Window_SrpgStatus.prototype.drawSrpgParameters = function(x, y) {
-        var lineHeight = this.lineHeight();
+        var tp = this._format.tp;
+        var lh = this._format.lh;
+        var hw = this._format.hw;
+        var lw = this._format.lw;
+        var cw = this._format.cw;
+        var a = this._battler;
+
         this.changeTextColor(this.systemColor());
-        this.drawText(_textSrpgMove, x, y, 120);
+        this.drawText(_textSrpgMove, x, y, lw);
         this.resetTextColor();
-        this.drawText(this._battler.srpgMove(), x + 120, y, 48, 'right');
+        this.drawText(a.srpgMove(), x + lw, y, cw, 'right');
         this.changeTextColor(this.systemColor());
-        this.drawText(_textSrpgRange, x + 188, y, 120);
+        this.drawText(_textSrpgRange, x + hw, y, lw);
         this.resetTextColor();
         var text = '';
-        if (this._battler.srpgWeaponMinRange() > 0) {
-            text += this._battler.srpgWeaponMinRange() + '-';
+        if (a.srpgWeaponMinRange() > 0) {
+            text += a.srpgWeaponMinRange() + '-';
         }
-        text += this._battler.srpgWeaponRange();
-        this.drawText(text, x + 188 + 72, y, 96, 'right');
+        text += a.srpgWeaponRange();
+        this.drawText(text, x + hw + lw, y, cw, 'right');
     };
-*/
+
+//========================================================================================================
+//Important: Built-in methods (New functions made by myself)
+//========================================================================================================
+    Window_SrpgStatus.prototype.drawElemets = function(x, y) {
+        var tp = this._format.tp;
+        var lh = this._format.lh;
+        var hw = this._format.hw;
+        var lw = this._format.lw;
+        var cw = this._format.cw;
+        var a = this._battler;
+
+        for (var i = 0; i < $dataSystem.elements.length - 1; i++) {
+            var elementId = i + 1;
+            var x2 = x + hw * (i % 2);
+            var y2 = y + lh * Math.floor(i / 2);
+            var rate = a.elementRate(elementId) * 100;
+            var text = String(rate) + '%'
+            this.changeTextColor(this.systemColor());
+            this.drawText($dataSystem.elements[elementId], x2, y2, lw);
+            if (rate > 100){
+                this.changeTextColor(this.tpCostColor())
+            } else if (rate < 100){
+                this.changeTextColor(this.deathColor())
+            } else {
+                this.resetTextColor();
+                text = ' -- '
+            }
+            this.drawText(text, x2 + lw, y2, cw, 'right');
+        }
+        this.resetTextColor();
+    };
+
+    Window_SrpgStatus.prototype.drawEquipments = function(equips, x, y) {
+        var lh = this._format.lh;
+        var equipLabelWidth = this._format.equipLabelWidth;
+        var equipContentWidth = this._format.equipContentWidth;
+        var a = this._battler;
+        var slots = a.equipSlots();
+        for (var i = 0; i < equips.length; i++) {
+            this.changeTextColor(this.systemColor());
+            this.drawText($dataSystem.equipTypes[slots[i]], x, y + lh * i, equipLabelWidth);
+            this.drawItemName(equips[i], x + equipLabelWidth, y + lh * i, equipContentWidth);
+        }
+    };
+
+    Window_SrpgStatus.prototype.drawSkills = function(x, y) {
+        var lh = this._format.lh;
+        var itemLabelWidth = this._format.itemLabelWidth;
+        var itemNameWidth = this._format.itemNameWidth;
+        var itemValueWidth = this._format.itemValueWidth;
+        var a = this._battler;
+        var skills = a.skills();
+        this._actor = a; //used to call Window_SkillList.prototype.drawSkillCost
+        this.changeTextColor(this.systemColor());
+        this.drawText(_textSkills, x, y, itemLabelWidth);
+        this.resetTextColor();
+        for (var i = 0; i < skills.length; i++) {
+            this.changePaintOpacity(a.srpgCanShowRange(skills[i]));
+            this.drawItemName(skills[i],  x + itemLabelWidth, y + lh * i, itemNameWidth);
+            Window_SkillList.prototype.drawSkillCost.call(this, skills[i], x + itemLabelWidth + itemNameWidth, y + lh * i, itemValueWidth);
+            this.changePaintOpacity(1);
+        }
+        this._actor = undefined;
+    };
+
+//========================================================================================================
+//Supporting Functions
+//========================================================================================================
+
+    Game_Enemy.prototype.equipSlots = function() {
+        return Game_Actor.prototype.equipSlots.call(this);
+    };
+
+    if (!Game_Enemy.prototype.skills) {
+        Game_Enemy.prototype.skills = function() {
+            var skills = []
+            for (var i = 0; i < this.enemy().actions.length; ++i) {
+                var skill = $dataSkills[this.enemy().actions[i].skillId];
+                if (skill) skills.push(skill);
+            }
+            return skills;
+        }
+    };
+
+    //method from srpg_ShowAoERange
+    if (!Game_Actor.prototype.srpgCanShowRange) {   
+        Game_Actor.prototype.srpgCanShowRange = function(skill){
+            //console.log(skill.id == this.attackSkillId(), this.addedSkillTypes().includes(skill.stypeId), skill.stypeId !== 0, Game_BattlerBase.prototype.srpgCanShowRange.call(this, skill))
+            if (skill.id == this.attackSkillId() || (this.addedSkillTypes().includes(skill.stypeId) && skill.stypeId !== 0)){
+                return Game_BattlerBase.prototype.srpgCanShowRange.call(this, skill);
+            } else return false;
+        };
+
+        Game_BattlerBase.prototype.srpgCanShowRange = function(skill){
+            return (this.isSkillWtypeOk(skill) && this.canPaySkillCost(skill) &&
+                    !this.isSkillSealed(skill.id) && !this.isSkillTypeSealed(skill.stypeId));
+        };
+    }   
 
 })();
