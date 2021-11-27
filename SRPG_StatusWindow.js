@@ -206,6 +206,11 @@
     };
 
     //Important: Format information for most layout! You can change the values to change the layout.
+    // Status window layout: (standard padding near left border apply automatically)
+    // |..............Status Window width...................|
+    // |....|..|........|....|..|..|..|........|....|..|....|
+    // | sp |tp|   lw   | cw |tp|tp|tp|   lw   | cw |tp| sp |
+    //      |      half  width     |     half width       |
     Window_SrpgStatus.prototype.loadFormat = function() {
         var fmt = {}
         fmt.lh = this.lineHeight();                                     //line height
@@ -213,7 +218,7 @@
         fmt.sp = this.standardPadding();                                //standard padding
         fmt.hw = Math.floor((this.windowWidth() + fmt.tp)/2) - fmt.sp;  //half width, aka start position of column 2
         fmt.fw = Window_Base._faceWidth;                                //face width
-        fmt.lw = Math.floor((fmt.hw - 2 * fmt.tp) *2/3);                //label width (for example: ATK, DEF, etc)
+        fmt.lw = Math.floor((fmt.hw - 3 * fmt.tp) *2/3);                //label width (for example: ATK, DEF, etc)
         fmt.cw = fmt.hw - fmt.lw - 3 * fmt.tp;                          //content width (for example: a.atk, a.def, etc)
         fmt.gaugeWidth = 186;                                           //hp, mp, tp gauge width
         fmt.halfGaugeWidth = Math.floor((fmt.gaugeWidth - fmt.tp)/2);   //hp, mp, tp gauge width, when put 2 in 1 row
@@ -411,7 +416,7 @@
                 this.changeTextColor(this.deathColor())
             } else {
                 this.resetTextColor();
-                text = ' -- '
+                text = ' -- ';
             }
             this.drawText(text, x2 + lw, y2, cw, 'right');
         }
@@ -471,9 +476,8 @@
     };
 
     //method from srpg_ShowAoERange
-    if (!Game_Actor.prototype.srpgCanShowRange) {   
+    if (!Game_Actor.prototype.srpgCanShowRange) {
         Game_Actor.prototype.srpgCanShowRange = function(skill){
-            //console.log(skill.id == this.attackSkillId(), this.addedSkillTypes().includes(skill.stypeId), skill.stypeId !== 0, Game_BattlerBase.prototype.srpgCanShowRange.call(this, skill))
             if (skill.id == this.attackSkillId() || (this.addedSkillTypes().includes(skill.stypeId) && skill.stypeId !== 0)){
                 return Game_BattlerBase.prototype.srpgCanShowRange.call(this, skill);
             } else return false;
