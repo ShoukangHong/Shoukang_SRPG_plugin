@@ -30,6 +30,10 @@
  * @desc Name of skills show on SRPG status window.
  * @default Skills
  *
+ * @param textSRPGRewards
+ * @desc Name of skills show on SRPG status window.
+ * @default Rewards
+ *
  * @help
  *
  * This plugin allows you to show multiple status pages in SRPG battle.
@@ -54,7 +58,7 @@
     var _height = Number(params['windowHeight'] || 10);
     var _pages = Number(params['number of pages'] || 3);
     var _textSkills = params['textSrpgSkills'] || 'Skills';
-
+    var _textRewards = params['textSRPGRewards'] || 'Rewards';
     //parameters from core.
     var parameters = PluginManager.parameters('SRPG_core');
     var _enemyDefaultClass = parameters['enemyDefaultClass'] || 'エネミー';
@@ -300,7 +304,7 @@
             this.drawSrpgParameters(tp, lh * 9);
         } else if (this._page == 1){
             //TODO: this part is content for page 1, the code here is just an example
-            this.drawSkills(tp, lh * 5);
+            this.drawRewards(tp, lh * 5);
         } else if (this._page == 2){
             //TODO: this part is content for page 1, the code here is just an example;
             this.drawElemets(tp, lh * 5);
@@ -454,6 +458,34 @@
             this.changePaintOpacity(1);
         }
         this._actor = undefined;
+    };
+
+    Window_SrpgStatus.prototype.drawRewards = function(x, y) {
+        var lh = this._format.lh;
+        var sp = this._format.sp;
+        var tp = this._format.tp;
+        var itemLabelWidth = this._format.itemLabelWidth;
+        var itemNameWidth = this._format.itemNameWidth;
+        var itemValueWidth = this._format.itemValueWidth;
+        var unitWidth = Math.max(this.textWidth(TextManager.expA), this.textWidth(TextManager.currencyUnit))
+
+        var a = this._battler;
+        var exp = String(a.exp() || 0);
+        var gold = String(a.gold() || 0);
+        var items = a.enemy().dropItems.reduce(function(r, di) { return r.concat(a.itemObject(di.kind, di.dataId))}, []);
+
+        this.changeTextColor(this.systemColor());
+        this.drawText(_textRewards, x, y, itemLabelWidth);
+        this.resetTextColor();
+        for (var i = 0; i < items.length; i++) {
+            this.drawItemName(items[i],  x + itemLabelWidth, y + lh * i, itemNameWidth + itemValueWidth);
+        }
+        this.drawText(exp, x, y + lh, itemLabelWidth - sp - tp - unitWidth, 'right');
+        this.drawText(gold, x, y + 2 * lh, itemLabelWidth - sp - tp - unitWidth, 'right');
+        this.changeTextColor(this.systemColor());
+        this.drawText(TextManager.expA, x, y + lh, itemLabelWidth - sp, 'right');
+        this.drawText(TextManager.currencyUnit, x, y + 2 * lh, itemLabelWidth - sp, 'right');
+        this.resetTextColor();
     };
 
 //========================================================================================================
