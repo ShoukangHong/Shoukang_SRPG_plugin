@@ -18,7 +18,6 @@
  * a       the actor, same as damage formula
  * dif     the exp difference from this level exp to next level exp.
  * ===================================================================================================
- * v 1.01 add note tag
  * v 1.00 First Release
  */
 (function () {

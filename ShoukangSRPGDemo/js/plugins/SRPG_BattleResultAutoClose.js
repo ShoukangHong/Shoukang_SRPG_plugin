@@ -3,7 +3,7 @@
 // Simple plugin to allows User to control exp for each skill.
 //=============================================================================
 /*:
- * @plugindesc Simple plugin to close battle result window automatically in enemy phase and auto actor phase.
+ * @plugindesc Simple plugin to close battle result window automatically in enemy phase.
  * @author NatePlays, Shoukang
  *
  * @param wait count
