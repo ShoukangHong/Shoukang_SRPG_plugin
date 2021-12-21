@@ -257,7 +257,7 @@
         if ($gameSystem.isSRPGMode()) {
             var tileWindow = this._mapSrpgTerrainEffectWindow;
             if ($gameSystem.isBattlePhase() !== 'actor_phase' || $gameMap.isEventRunning() ||
-             ['invoke_action', 'battle_window', 'after_battle'].contains($gameSystem.isSubBattlePhase())){
+             ['invoke_action', 'battle_window'].contains($gameSystem.isSubBattlePhase())){
                 tileWindow.close();
                 return;
                 //tileWindow.y = Graphics.boxHeight - tileWindow.windowHeight();
