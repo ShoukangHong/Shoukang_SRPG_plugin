@@ -1,7 +1,7 @@
 //====================================================================================================================
 // SRPG_AdvancedInteraction.js
 //--------------------------------------------------------------------------------------------------------------------
-// free to use and edit     v1.05 fix wrap exceed map boundary bug. Fix object passability bug
+// free to use and edit     v1.06 fix compatibility issue with direction mode plugin
 //====================================================================================================================
 /*:
  * @plugindesc Add Advanced interaction for SRPG battle.
@@ -71,6 +71,7 @@
  * Type and eventId are optional, default type is 'circle', default eventId is the target event's Id.
  * If you set the eventId to the active event Id: $gameTemp.activeEvent().eventId(), the actor will wrap.
  * ==========================================================================================================================
+ * v1.06 fix compatibility issue with direction mode plugin
  * v1.05 fix wrap exceed map boundary bug. Fix object passability bug
  * v1.04 include a way to cast wrap skill and warp interaction!
  * v1.03 include Actor-enemy and actor-actor interaction.  Add built-in interactions and <condition:XXXX> note tag
@@ -426,7 +427,8 @@
 //TODO: make a similar function to define what the specific interaction should do.
     Scene_Map.prototype.startRegularInteraction = function(){
         var event = $gameTemp.targetEvent();
-        this.preBattleSetDirection();
+        event.turnTowardCharacter($gameTemp.activeEvent());
+        $gameTemp.activeEvent().turnTowardCharacter(event);
         event.start();
         $gameTemp.pushSrpgEventList(event);
         $gameSystem.pushSearchedItemList([event.posX(), event.posY()]);
@@ -435,11 +437,9 @@
     }
 
     Scene_Map.prototype.startWrap = function(){
-        $gameTemp.targetEvent()._x = $gamePlayer.posX();
-        $gameTemp.targetEvent()._y = $gamePlayer.posY();
-        $gameTemp.targetEvent()._realX = $gamePlayer.posX();
-        $gameTemp.targetEvent()._realY = $gamePlayer.posY();
-        this.preBattleSetDirection();
+        $gameTemp.targetEvent().setPosition($gamePlayer.posX(), $gamePlayer.posY());
+        $gameTemp.targetEvent().turnTowardCharacter($gameTemp.activeEvent());
+        $gameTemp.activeEvent().turnTowardCharacter($gameTemp.targetEvent());
         $gameTemp.targetEvent().requestAnimation(_appearAnimation);
         $gameTemp.clearWrapInfo();
         $gameSystem.clearSrpgInteractionType();
