@@ -464,6 +464,7 @@
         var lh = this._format.lh;
         var sp = this._format.sp;
         var tp = this._format.tp;
+        var hw = this._format.hw;
         var itemLabelWidth = this._format.itemLabelWidth;
         var itemNameWidth = this._format.itemNameWidth;
         var itemValueWidth = this._format.itemValueWidth;
@@ -478,13 +479,13 @@
         this.drawText(_textRewards, x, y, itemLabelWidth);
         this.resetTextColor();
         for (var i = 0; i < items.length; i++) {
-            this.drawItemName(items[i],  x + itemLabelWidth, y + lh * i, itemNameWidth + itemValueWidth);
+            this.drawItemName(items[i],  x, y + lh * (i + 1), itemNameWidth + itemValueWidth);
         }
-        this.drawText(exp, x, y + lh, itemLabelWidth - sp - tp - unitWidth, 'right');
-        this.drawText(gold, x, y + 2 * lh, itemLabelWidth - sp - tp - unitWidth, 'right');
+        this.drawText(exp, x, y + lh, 2 * hw - sp - tp - unitWidth, 'right');
+        this.drawText(gold, x, y + 2 * lh, 2 * hw - sp - tp - unitWidth, 'right');
         this.changeTextColor(this.systemColor());
-        this.drawText(TextManager.expA, x, y + lh, itemLabelWidth - sp, 'right');
-        this.drawText(TextManager.currencyUnit, x, y + 2 * lh, itemLabelWidth - sp, 'right');
+        this.drawText(TextManager.expA, x, y + lh, 2 * hw - sp, 'right');
+        this.drawText(TextManager.currencyUnit, x, y + 2 * lh, 2 * hw - sp, 'right');
         this.resetTextColor();
     };
 

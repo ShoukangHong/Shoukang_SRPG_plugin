@@ -1,8 +1,8 @@
 [
 null,
-{"id":1,"atypeId":5,"description":"A small shield that parries the opponent's attack. Evasion rate increases.\n[Avoid + 5%]","etypeId":2,"traits":[{"code":22,"dataId":1,"value":0.05}],"iconIndex":128,"name":"Buckler","note":"","params":[0,0,0,5,0,0,0,0],"price":200},
+{"id":1,"atypeId":5,"description":"A small shield that parries the opponent's attack. Evasion rate increases.\n[Avoid + 5%]","etypeId":3,"traits":[{"code":22,"dataId":1,"value":0.05}],"iconIndex":128,"name":"Buckler","note":"","params":[0,0,0,5,0,0,0,0],"price":200},
 {"id":2,"atypeId":5,"description":"A shield that gives resistance to magic.\n[Avoid + 5%]","etypeId":2,"traits":[{"code":22,"dataId":1,"value":0.05}],"iconIndex":128,"name":"Magic Shield","note":"","params":[0,0,0,10,0,10,0,0],"price":500},
-{"id":3,"atypeId":1,"description":"A fashionable leather hat.\nIncreases agility.","etypeId":3,"traits":[],"iconIndex":130,"name":"Leather Cap","note":"","params":[0,0,0,5,0,0,5,0],"price":200},
+{"id":3,"atypeId":1,"description":"A fashionable leather hat.\nIncreases agility.","etypeId":2,"traits":[],"iconIndex":130,"name":"Leather Cap","note":"","params":[0,0,0,5,0,0,5,0],"price":200},
 {"id":4,"atypeId":4,"description":"A headdress for knights with magic that increases their attack power.","etypeId":3,"traits":[{"code":22,"dataId":1,"value":0}],"iconIndex":132,"name":"Knight Cress","note":"","params":[0,0,10,15,0,0,0,0],"price":500},
 {"id":5,"atypeId":2,"description":"A blessed headdress that enhances magical power.\nPopular among wizards.","etypeId":3,"traits":[{"code":22,"dataId":1,"value":0}],"iconIndex":134,"name":"Circlet","note":"","params":[0,0,0,0,10,15,0,0],"price":500},
 {"id":6,"atypeId":1,"description":"Clothes for travelers with an emphasis on ease of movement.","etypeId":4,"traits":[],"iconIndex":135,"name":"Traveler Clothes","note":"","params":[0,0,0,10,0,0,0,0],"price":200},
