@@ -664,8 +664,7 @@
         $gameSystem.clearSrpgActorCommandStatusWindowNeedRefresh();
         $gameSystem.clearSrpgPrepareWindowNeedRefresh();
         $gameTemp.setResetMoveList(true);
-        $gameTemp.setActiveEvent(event);
-        $gameSystem.srpgMakeMoveTable(event);
+        $gameSystem.srpgMakeMoveTable($gameTemp.activeEvent());
         $gameSystem.setSrpgStatusWindowNeedRefresh(battlerArray);
         $gameSystem.setSubBattlePhase('status_window');
     };
