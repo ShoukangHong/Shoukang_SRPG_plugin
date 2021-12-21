@@ -149,7 +149,6 @@
         _SRPG_SceneMap_createAllWindows.call(this);
         this._windowLayer.removeChild(this._mapSrpgStatusWindow);
         this.createSrpgStatusWindow();
-        console.log(this._windowLayer.children)
     };
 
     var _Scene_Map_createSrpgActorCommandWindow = Scene_Map.prototype.createSrpgActorCommandWindow;
