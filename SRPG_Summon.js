@@ -11,16 +11,16 @@
  * @default 1
  *
  * @param summon appear Animation Id
- * @desc appear animation for wrap skill
+ * @desc appear animation for wrap skill, input 0 to disable
  * @default 52
  *
  * @param summon disappear Animation Id
- * @desc disappear animation for wrap skill
+ * @desc disappear animation for wrap skill, input 0 to disable
  * @default 52
  *
  * @help
  *
- * This plugin allow you to summon events which are a copy of event from the summon map (the map with Summon Map Id).
+ * This plugin allow you to summon events which are copy of events from the summon map (the map with Summon Map Id).
  * You need to place all the type of events you want to summon in the summon map.
  * Summon units on unpassable tiles will be ignored.
  *
@@ -30,7 +30,7 @@
  * You don't need any place holder event to summon. A new event will be created, which have the event id =
  * $gameMap.nextEventId() (this is before the summon, after summon the length will of course increase by 1).
  *
- * By calling an common event in your skill effect, you can summon multiple same actors/enemies/objects, set their level,
+ * By calling a common event in your skill effect, you can summon multiple same actors/enemies/objects, set their level,
  * their life span, etc. Please read the script calls for more information.
  *
  * ===================================================================================================
@@ -38,7 +38,6 @@
  * Need Dr.Q's SRPG_PositionEffect plugin to use the <cellTarget> note tag so that you can target an empty cell.
  * Need SRPG_AoE in my bug fix patch if you use AoE summon. It fixed a bug for aoe cellTarget.
  * However the enemy still won't know how to cast skill without a target.
- * Place below SRPG_MapBattle. Or just delete the 'utility functions for finding unit events' section in SRPG_MapBattle.
  * ===================================================================================================
  * script calls:
  *
@@ -77,8 +76,8 @@
     //=================================================================================================
     var parameters = PluginManager.parameters('SRPG_Summon');
     var _SummonMapId = Number(parameters['Summon Map Id']) || 1;
-    var _appearAnimation = Number(parameters['summon appear Animation Id']) || 52;
-    var _disappearAnimation = Number(parameters['summon disappear Animation Id']) || 52;
+    var _appearAnimation = Number(parameters['summon appear Animation Id']) || 0;
+    var _disappearAnimation = Number(parameters['summon disappear Animation Id']) || 0;
 
     var coreParameters = PluginManager.parameters('SRPG_core');
     var _existActorVarID = Number(coreParameters['existActorVarID'] || 1);
