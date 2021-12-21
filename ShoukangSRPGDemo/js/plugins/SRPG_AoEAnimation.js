@@ -361,7 +361,9 @@
         for (var i = 0; i < targetEvents.length; i++) {
             var target = $gameSystem.EventToUnit(targetEvents[i].eventId())[1];
             var targetType = $gameSystem.EventToUnit(targetEvents[i].eventId())[0];
-            if (target !== user) this.pushSrpgBattler(targetType, target);
+            if (target !== user) {
+                this.pushSrpgBattler(targetType, target);
+            }
             var act = (i < 1 ? action : hiddenAction);
             this.srpgAddMapSkill(act, user, target);
             this.setTargetDirection(targetEvents[i])
@@ -380,6 +382,7 @@
         for (var i = 0; i < targetEvents.length; i++) {
             var targetArray = $gameSystem.EventToUnit(targetEvents[i].eventId());
             var target = targetArray[1];
+            target.setActionTiming(1);
             if (!this.counterModeValid(targetEvents[i])) continue;
             if (target.canMove() && !action.item().meta.srpgUncounterable) {
                 target.srpgMakeNewActions();
@@ -388,8 +391,8 @@
                 reaction.setAttack();
                 var distance = $gameSystem.unitDistance($gameTemp.activeEvent(), target.event());
                 target.setAoEDistance(distance);
-                //console.log(target.canUse(reaction.item()));
-                if (_counterMode === 'first' && target.canUse(reaction.item())) this._counterCount -= 1;
+                if (!target.canUse(reaction.item())) continue;
+                if (_counterMode === 'first') this._counterCount -= 1;
                 var actFirst = (reaction.speed() > action.speed());
                 if (_srpgUseAgiAttackPlus == 'true') actFirst = false;
                 this.srpgAddMapSkill(reaction, target, user, actFirst);//action, user, target, addToFront
