@@ -8,7 +8,9 @@ https://forums.rpgmakerweb.com/index.php?threads/srpg-engine-plugins-for-creatin
 
 ### Demo game is now available! Try the new features here:
 
-https://shoukanghong.github.io/Shoukang_SRPG_plugin/ShoukangSRPGDemo/
+Play: https://shoukanghong.github.io/Shoukang_SRPG_plugin/ShoukangSRPGDemo/
+
+Download: https://shoukanghonggmailcom.itch.io/srpg-engine-mv-shoukang-demo
 
 ## Battle Preparation
 Add battle preparation phase at the beginning of SRPG battle. It allows you to change, remove, add battlers, and switch battler positions before the battle.
