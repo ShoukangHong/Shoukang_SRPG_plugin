@@ -243,6 +243,21 @@ Scene_Map.prototype.srpgInvokeMapSkill = function(data) {
     //shoukang get animation id right
     if (animation < 0) animation = (user.isActor() ? user.attackAnimationId1() : user.attackAnimationId());
     if (!action.isDynamicAnimation(animation) && action.area() <= 0) {
+
+        //shoukang edit to show battle log
+        if (data.phase == 'start') {
+            if (!user.canMove() || !user.canUse(action.item()) || this.battlerDeadEndBattle()) {
+                data.phase = 'cancel';
+                this._srpgSkillList.unshift(data);
+                // Show the results
+                return srpgInvokeMapSkillResult(user, target);
+            }
+            if (!action._editedItem){
+                this._logWindow.show();
+                this._logWindow.displayAction(user, action.item());
+            }
+        }
+
         return _Scene_Map_srpgInvokeMapSkill.apply(this, arguments);
     }
 
@@ -254,8 +269,14 @@ Scene_Map.prototype.srpgInvokeMapSkill = function(data) {
             // Show the results
             return srpgInvokeMapSkillResult(user, target);
         }
-        user.useItem(action.item());
 
+        //shoukang edit to show battle log
+        user.useItem(action.item());
+        if (!action._editedItem){
+            this._logWindow.show();
+            this._logWindow.displayAction(user, action.item());
+        }
+        
         //shoukang add condition check
         var targetsEventId = undefined;
         //aoe
