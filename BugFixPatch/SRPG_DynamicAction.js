@@ -18,7 +18,7 @@
  * @help Call DynamicAnimationMap and DynamicMotionMap
  * when SRPG_core.js map battle is executed.
  *
- * Shoukang's fix: when casting and on map AoE, counter attacks now show up correctly.
+ * Shoukang's fix: when casting and on map AoE, counter attacks now show up correctly. Add battle log compatibility with AoE animation plugin
  * 
  * [Based on works by Takeshi Sunagawa (http://newrpg.seesaa.net/)]
  *
@@ -276,7 +276,7 @@ Scene_Map.prototype.srpgInvokeMapSkill = function(data) {
             this._logWindow.show();
             this._logWindow.displayAction(user, action.item());
         }
-        
+
         //shoukang add condition check
         var targetsEventId = undefined;
         //aoe
