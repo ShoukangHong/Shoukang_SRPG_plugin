@@ -208,7 +208,11 @@
         for (var i = 0; i < this._srpgPrepareAllActors.length; i++){
             if (actorlist.indexOf(this._srpgPrepareAllActors[i]) < 0) list.push(this._srpgPrepareAllActors[i]);
         }
-        this._remainingActorList = list.sort()
+        this._remainingActorList = list.sort(function(a,b){
+            if ($gameActors.actor(a).isDead()) return -1;
+            if ($gameActors.actor(b).isDead()) return 1;
+            return b-a;
+        });
         return this._remainingActorList;
     }
 
@@ -240,6 +244,7 @@
 
     Game_Party.prototype.setMinActor = function(num){
         this._srpgMinActor = num;
+        this.initRemainingActorList();
         var eventList = $gameMap.events();
         for (var i = 0; i < eventList.length; i++) {
             if (this.getMinActor() <= this.getCurrentActorNumber()) return;
@@ -417,7 +422,7 @@
         $gameVariables.setValue(_existActorVarID, oldValue + 1);
         event.appear();
         $gameMap.changeActor(event.eventId(), actorId);
-        this.initRemainingActorList(actorId);
+        this.initRemainingActorList();
     }
 
     Game_Player.prototype.srpgBattlePrepareExchangePosition = function(event){
