@@ -1,6 +1,6 @@
 //=============================================================================
 //SRPG_AoEAnimation.js
-// v 1.04 fixed some bugs and improve logic. Now the map battle should work completely the same as scene battle.  Also updates SRPG_DynamicAction
+// v 1.05 add map battle log window. Need to update the SRPG_DynamicAction to work. Fix a bug where agi attack continue when enemy is already dead.
 // Use my bug fix patch! Especially the SRPG_DynamicAction, the map AoE battle will work amazingly good!
 // Download here https://github.com/ShoukangHong/Shoukang_SRPG_plugin/tree/main/BugFixPatch
 //=============================================================================
