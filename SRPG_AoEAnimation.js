@@ -84,6 +84,7 @@
  * ===================================================================================================
  * Credits to: Dopan, Dr. Q, Traverse, SoulPour777
  * ===================================================================================================
+ * v 1.05 add map battle log window. Need to update the SRPG_DynamicAction to work. Fix a bug where agi attack continue when enemy is already dead.
  * v 1.04 fixed some bugs and improve logic. Now the map battle should work completely the same as scene battle.  Also updates SRPG_DynamicAction
  * v 1.03 fixed some bugs
  * v 1.02 Change battle result window to fit for more reward items.
@@ -751,12 +752,12 @@
 
     BattleManager.battlerDeadEndBattle = function() {
         var userType = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[0]
-        var targetType = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[0]
+        var targetType = $gameSystem.EventToUnit($gameTemp.targetEvent().eventId())[0]
         if ($gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1].isDead()){
             return true;
         }
         if (userType == targetType) return false;
-        return $gameParty.members().isAllDead() || $gameTroop.members().isAllDead()
+        return $gameParty.isAllDead() || $gameTroop.isAllDead();
     }
 
     Scene_Map.prototype.battlerDeadEndBattle = BattleManager.battlerDeadEndBattle;
@@ -829,6 +830,29 @@
     Scene_Map.prototype.hasRewards = function() {
         return this._rewards.exp > 0 || this._rewards.gold > 0 || this._rewards.items.length > 0;
     }
+
+//==========================================================================================================
+// Map battle log window
+//==========================================================================================================
+    var _SRPG_SceneMap_createAllWindows = Scene_Map.prototype.createAllWindows;
+    Scene_Map.prototype.createAllWindows = function() {
+        this.createLogWindow();
+        _SRPG_SceneMap_createAllWindows.call(this);
+    };
+
+    Scene_Map.prototype.createLogWindow = function() {
+        this._logWindow = new Window_BattleLog();
+        this.addWindow(this._logWindow);
+        this._logWindow.hide();
+    };
+
+    var _Scene_Map_srpgAfterAction = Scene_Map.prototype.srpgAfterAction;
+    Scene_Map.prototype.srpgAfterAction = function() {
+        this._logWindow.clear();
+        this._logWindow.hide();
+        _Scene_Map_srpgAfterAction.call(this);
+    };
+
 //==========================================================================================================
 // Srpg Battle Result window that can display more items and show exp according to the new distribution rule
 //==========================================================================================================
