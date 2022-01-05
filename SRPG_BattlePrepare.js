@@ -1,7 +1,8 @@
 //====================================================================================================================
 // SRPG_BattlePrepare.js
 //--------------------------------------------------------------------------------------------------------------------
-// free to use and edit    V1.06 Fix bug for set min actor, fix bug for save file
+// free to use and edit     V1.07 Disable selection of dead actors. Please also find 'var array = $gameParty.allMembers()' in SRPG_Core and replace with
+// 'var array = $gameParty.allMembers().filter(function(actor){return actor.isAlive()})' to make sure it works.
 //====================================================================================================================
 /*:
  * @plugindesc Add battle Prepare phase at the beginning of SRPG battle.
@@ -77,6 +78,8 @@
  * If you have a specific actor number requirement, run these script calls after the 'SRPGBattle Start' plugin command.
  * These max and min numbers will be erased in the next battle.
  *==========================================================================================================================
+ * V1.07 Disable selection of dead actors. Please also find 'var array = $gameParty.allMembers()' in SRPG_Core and replace with
+ *'var array = $gameParty.allMembers().filter(function(actor){return actor.isAlive()})' to make sure it works.
  * V1.06 Fix bug for set min actor, fix bug for save file
  * V1.05 Support for SRPG_AdvancedInteraction
  * V1.04 Fixed some small issues
@@ -859,7 +862,7 @@
             var id = actor.actorId()
             //console.log(index, id)
             //console.log($gameParty.inRemainingActorList(id))
-            if ($gameParty.inLockedActorList(id)){ // || $gameActors.actor(id).isDeathStateAffected()
+            if ($gameParty.inLockedActorList(id) || $gameActors.actor(id).isDead()){ // || $gameActors.actor(id).isDeathStateAffected()
                 SoundManager.playBuzzer();
             } else if ($gameParty.inRemainingActorList(id)){
                     SoundManager.playEquip();
