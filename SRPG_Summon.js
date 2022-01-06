@@ -2,7 +2,7 @@
 //SRPG_Summon.js
 //=============================================================================
 /*:
- * @plugindesc Allow you to summon/enemy/objects during SRPG battle. v 1.01 add aoe summon, fix bugs, enable more summon event types.
+ * @plugindesc Allow you to summon/enemy/objects during SRPG battle. v 1.03 fix a bug where summoned battlers disappear after save & load
  * @author Shoukang
  *
  * @param Summon Map Id
@@ -66,6 +66,8 @@
  *     gives the number of alive party members, which doesn't take summoned actors into consideration.
  *     Can be used to check game end condition.
  * ===================================================================================================
+ * v 1.03 fix a bug where summoned battlers disappear after save & load
+ * v 1.02 can summon events above or below a battler.(for the use of summon magic circles)!However it's not allowed to summon multiply magic circles on the same tile.
  * v 1.01 add aoe summon, fix bugs, enable more summon event types.
  * v 1.00 First Release
  */
@@ -129,8 +131,8 @@
     Game_Interpreter.prototype.summon = function(type, summonId, battlerId, level, turn, x, y){
         if (x === undefined) x = $gamePlayer.posX();
         if (y === undefined) y = $gamePlayer.posY();
-        if (!turn) turn = Number.POSITIVE_INFINITY;
-        if (!$gameMap.isValid(x,y) || !$gameMap.fourDirectionPassable(x, y) || !$gameMap.positionIsOpen(x, y)) return;
+        if (!turn) turn = 10000;//Number.POSITIVE_INFINITY;
+        if (!$gameMap.canSummon(type, summonId, battlerId,x,y)) return;
         if ($gameTemp.activeEvent() && $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())){
             $gameTemp.activeEvent().turnTowardCharacter($gamePlayer);
             var summoner = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
@@ -192,6 +194,21 @@
         var oldValue = $gameVariables.value(_existEnemyVarID);
         $gameVariables.setValue(_existEnemyVarID, oldValue + 1);
         return true;
+    };
+
+    //summon validity
+    Game_Map.prototype.canSummon = function(type, summonId, battlerId, x, y) {
+        if (!$gameMap.isValid(x,y)) return;
+        if (type == 'actor' || type == 'enemy') {
+            if (!$gameMap.positionIsOpen(x, y)) return;
+            //var battler = (type == 'actor' ? $gameActors.actor(battlerId) : new Game_Enemy(battlerId, 0, 0));
+            //if ($gameMap.terrainTag(x, y) <= battler.srpgThroughTag()) return true;
+            return $gameMap.fourDirectionPassable(x, y);
+        }
+        var priority = $dataSummon.events[summonId].pages[0].priorityType;
+        return $gameMap.eventsXyNt(x, y).every(function(event) {
+            return event._priorityType != priority;
+        });
     };
 
     Game_Map.prototype.fourDirectionPassable = function(x, y) {
@@ -331,7 +348,7 @@
     };
 
     Game_SummonEvent.prototype.updateTurns = function() {
-        this._turns -=1;
+        if (this._turns < 10000) this._turns -=1;
         if (this._turns <= 0){
             var battleArray = $gameSystem.EventToUnit(this.eventId())
             if (battleArray && battleArray[1] && battleArray[1].isAlive()){
