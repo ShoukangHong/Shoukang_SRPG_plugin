@@ -6,7 +6,7 @@
 
 /*:
  * @plugindesc SRPG area-of-effect skills
- * @author Dr. Q + アンチョビ
+ * @author Dr. Q + アンチョビ, Edited by Shoukang
  * 
  * @param AoE Color
  * @desc CSS Color for AoE squares
@@ -705,7 +705,7 @@
 			$gameSystem.isSubBattlePhase() === 'auto_actor_action' ||
 			$gameSystem.isSubBattlePhase() === 'enemy_action' ||
 			$gameSystem.isSubBattlePhase() === 'battle_window') {
-				return $gameTemp.inArea($gameTemp.targetEvent());
+				return $gameTemp.inArea($gameTemp.targetEvent()) || item.meta.cellTarget; //shoukang edit: check cellTarget tag
 			}
 		}
 		return _canUse.call(this, item);

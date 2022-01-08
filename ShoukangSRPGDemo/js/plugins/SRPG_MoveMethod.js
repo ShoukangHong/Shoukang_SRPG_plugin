@@ -49,19 +49,20 @@
  *   <mode:random>         # move randomly.
  *   <mode:region x>       # move to nearest tile with region x.
  *   <mode:position x y>   # move to map position [x, y].   
- *   <mode:absPosition x y># with abs: regardless of nearbt enemy.
+ *   <mode:absPosition x y># with abs: regardless of nearbt enemies.
  *   <mode:nearestFriend>  # move to the nearest friend.
  *   <mode:nearestOpponent># move to the nearest opponent.
  *   <mode:nearestUnitEvent> # move to the nearest unit event.
  *   <mode:mostFriends>    # move to the 'center' of friend units.
  *   <mode:mostOpponents>  # move to the 'center' of friend units.
  *   <mode:avoidOpponents> # move away from the opponents, the distance is mesuared by direct distance, not route distance.
- *   <mode:absAvoidOpponents>  # with abs: regardless of nearby enemy.
+ *   <mode:absAvoidOpponents>  # with abs: regardless of nearby enemies.
  *   <mode:avoidFlags['type']> # move away from the events with <aiFlag:type>, or events with this type(object, enemy, unitevent, etc.). The distance is direct distance.
- *   <mode:absAvoidFlags['type']> # with abs: regardless of nearby enemy.
+ *   <mode:absAvoidFlags['type']> # with abs: regardless of nearby enemies.
  *   <mode:nearestFlag['type']># move to the nearest event with <aiFlag:type>, or event with this type(object, enemy, unitevent, etc.).
  *   <mode:mostFlags['type']>  # move to the 'center' of events with <aiFlag:type>, or events with this type(object, enemy, unitevent, etc.).
  *                             # You can add more than one type, for example: <mode:nearestFlag['customizedType', 'unitevent', 'actor']>
+ * 1/3/2022 Update: any mode contains keyword 'abs' will ignore nearby enemies
  * =============================================================================================================================
  * event/class/actor/enemy note tags for aiMove:
  * The aiMove note tags allow you to set different move mode based on condition, it will be checked before move to refresh move mode.
@@ -256,33 +257,33 @@
 			bestXY = $gameTemp.bestXYinMoveList(validMoveList, distRouteXY[2][0], distRouteXY[2][1], distRouteXY[1]);
 		} else if (battleMode === 'random' || 0.1 * _confusionMoveRate * user.confusionLevel() > Math.random()){
 			bestXY = validMoveList[Math.floor(Math.random() * validMoveList.length)];
-		} else if (battleMode === 'nearestOpponent'){
+		} else if (battleMode.match(/\s*nearestOpponent/i)){
 			typeArray = [(event.isType() === 'actor' ? 'enemy':'actor')];
 			bestXY = $gameTemp.nearestTargetXY(validMoveList, typeArray, event.posX(), event.posY());
-		} else if (battleMode === 'nearestFriend'){
+		} else if (battleMode.match(/\s*nearestFriend/i)){
 			bestXY = $gameTemp.nearestTargetXY(validMoveList, [event.isType()], event.posX(), event.posY());
-		} else if (battleMode === 'nearestUnitEvent'){
+		} else if (battleMode.match(/\s*nearestUnitEvent/i)){
 			bestXY = $gameTemp.nearestTargetXY(validMoveList, ['unitEvent'], event.posX(), event.posY());
-		} else if (battleMode.match(/\s*nearestFlag(.+)/)){//<mode:nearestFlag['xxxx']>
-			typeArray = eval(battleMode.match(/\s*nearestFlag(.+)/)[1]);
+		} else if (battleMode.match(/\s*nearestFlag(.+)/i)){//<mode:nearestFlag['xxxx']>
+			typeArray = eval(battleMode.match(/\s*nearestFlag(.+)/i)[1]);
 			bestXY = $gameTemp.nearestTargetXY(validMoveList, typeArray, event.posX(), event.posY());
-		} else if (battleMode === 'mostOpponents') {
+		} else if (battleMode.match(/\s*mostOpponents/i)) {
 			typeArray = [(event.isType() === 'actor' ? 'enemy':'actor')];
 			bestXY = $gameTemp.mostPositionXY(validMoveList, typeArray, event.posX(), event.posY());
-		} else if (battleMode === 'mostFriends') {
+		} else if (battleMode.match(/\s*mostFriends/i)) {
 			bestXY = $gameTemp.mostPositionXY(validMoveList, [event.isType()], event.posX(), event.posY());
 		} else if (battleMode.match(/\s*mostFlags(.+)/i)) {//<mode:mostFlags['xxxx']>
 			typeArray = eval(battleMode.match(/\s*mostFlags(.+)/i)[1]);
 			bestXY = $gameTemp.mostPositionXY(validMoveList, typeArray, event.posX(), event.posY());
-		} else if (battleMode.match(/avoidOpponents/i)){//<mode:avoidOpponents> <mode:absAvoidOpponents>
+		} else if (battleMode.match(/\s*avoidOpponents/i)){//<mode:avoidOpponents> <mode:absAvoidOpponents>
 			typeArray = [(event.isType() === 'actor' ? 'enemy':'actor')];
 			bestXY = $gameTemp.avoidTargetXY(validMoveList, typeArray, false);
 		} else if (battleMode.match(/\s*avoidFlags(.+)/i)){//<mode:avoidFlags['xxxx']>
 			typeArray = eval(battleMode.match(/\s*avoidFlags(.+)/i)[1]);
 			bestXY = $gameTemp.avoidTargetXY(validMoveList, typeArray, false);
-		} else if (battleMode === 'regionUp' || battleMode === 'absRegionUp'){
+		} else if (battleMode.match(/\s*regionUp/i)){
 			bestXY = $gameTemp.bestRegionXY(validMoveList, 1);
-		} else if (battleMode === 'regionDown' || battleMode === 'absRegionDown'){
+		} else if (battleMode.match(/\s*regionDown/i)){
 			bestXY = $gameTemp.bestRegionXY(validMoveList, - 1);
 		} else if (battleMode.match(/\s*region\s+(\d+)/i)){ //<mode:region x>
 			var regionId = Number(battleMode.match(/\s*region\s+(\d+)/i)[1]);
@@ -414,11 +415,7 @@
 		if (mode === 'escape'){
 			this.setBattleMode('nearestFriend');
 			return true;
-		} else if (mode === 'absRegionUp' || mode === 'absRegionDown'){
-			return true;
-		} else if (mode.match(/absPosition/i)){
-			return true;
-		} else if (mode.match(/absavoid/i)){
+		} else if (mode.match(/abs/i)){
 			return true
 		}
 		return false;
@@ -705,6 +702,3 @@
 	};
 
 })();
-
-
-
