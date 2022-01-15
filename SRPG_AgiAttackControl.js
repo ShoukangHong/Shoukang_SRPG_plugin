@@ -56,6 +56,7 @@
  * You can also use (dif/b.agi) * 2, dif > Math.randomInt(100) ? 1:0, etc.
  * if result is a float number like 3.1415... only the integer part will be taken into account.
  * ===================================================================================================
+ * v 1.02 fix a bug for negative agi Attack time.
  * v 1.01 change and add note tags, the note tags in previous version won't work now, use the new one instead!
  * v 1.00 first release
  */
@@ -92,7 +93,7 @@
         var b = target;
         if (a.canAgiAttack() && b.canAgiReception()) {
             var count = Math.floor(eval(_formula));
-            return Math.min(count, _max);
+            return Math.max(Math.min(count, _max), 0);
         } else return 0;
     }
 
