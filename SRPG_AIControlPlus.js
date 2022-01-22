@@ -1,4 +1,4 @@
-//=============================================================================
+.//=============================================================================
 // SRPG_AIControlPlus.js
 //-----------------------------------------------------------------------------
 // Free to use and edit    version 1.00 First release!
@@ -169,7 +169,7 @@
   }
 
 	var parameters = PluginManager.parameters('SRPG_AIControlPlus');
-	var _aiRating = parameters['rating Formula'] || Math.pow(1.25, rating + 4 * random - 2);
+	var _aiRating = parameters['rating Formula'] || 'Math.pow(1.25, rating + 4 * random - 2)';
 	var _aiTarget = parameters['target Formula'] || '10';
 	var _aiCounter = parameters['counter Formula'] || '2';
 	var _aiFront = parameters['direction Modifier Front'] || 1;
