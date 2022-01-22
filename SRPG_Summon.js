@@ -2,7 +2,7 @@
 //SRPG_Summon.js
 //=============================================================================
 /*:
- * @plugindesc Allow you to summon/enemy/objects during SRPG battle. v 1.03 fix a bug where summoned battlers disappear after save & load
+ * @plugindesc Allow you to summon/enemy/objects during SRPG battle. v 1.04 Fix a bug for wrong action subject.
  * @author Shoukang
  *
  * @param Summon Map Id
@@ -66,7 +66,8 @@
  *     gives the number of alive party members, which doesn't take summoned actors into consideration.
  *     Can be used to check game end condition.
  * ===================================================================================================
- * v 1.03 fix a bug where summoned battlers disappear after save & load
+ * v 1.04 Fix a bug for wrong action subject.
+ * v 1.03 fix a bug where summoned battlers disappear after save & load.
  * v 1.02 can summon events above or below a battler.(for the use of summon magic circles)!However it's not allowed to summon multiply magic circles on the same tile.
  * v 1.01 add aoe summon, fix bugs, enable more summon event types.
  * v 1.00 First Release
@@ -319,6 +320,18 @@
         if (this.isSummonedBattler()){
             return Game_BattlerBase.prototype.event.call(this);
         } else return _Game_Actor_event.call(this);
+    };
+
+    //the original set subject and subject makes no sense.
+    var _Game_Action_setSubject = Game_Action.prototype.setSubject;
+    Game_Action.prototype.setSubject = function(subject) {
+        _Game_Action_setSubject.call(this, subject);
+        this._subject = subject;
+    };
+
+    var _Game_Action_subject = Game_Action.prototype.subject;
+    Game_Action.prototype.subject = function() {
+      return this._subject;
     };
 
     Game_SummonEvent = function() {
