@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_MoveMethod.js
 //-----------------------------------------------------------------------------
-// Free to use and edit    version 1.03 fix partol region bug
+// Free to use and edit    version 1.04 fix unclaimed variable and fastern isOccupied function
 //=============================================================================
 /*:
  * @plugindesc More move modes and improved pathfinding that can handle all conditions!
@@ -98,6 +98,7 @@
  * so that reachable positions are always shorter than unreachable ones.
  * To extend more modes, use 'battleModeExtension' function.
  * =============================================================================================================================
+ * version 1.04 fix unclaimed variable and fastern isOccupied function
  * version 1.03 fix partol region bug
  * version 1.02 improved clustering algorithm for mostXXX move method
  * version 1.01 add new 'avoid' mode and 'keepdistance' aiMove
@@ -310,10 +311,9 @@
 
 	// check a tile is occupied or not, occupied by active event is not considered as occupied;
 	Game_Map.prototype.isOccupied = function(x, y){
-		return $gameMap.eventsXyNt(x, y).some(function(otherEvent) {
-			if (otherEvent.eventId() !== $gameTemp.activeEvent().eventId() && !otherEvent.isErased()) {
-				return (otherEvent.pos(x, y) && ['enemy', 'actor', 'playerEvent'].indexOf(otherEvent.isType()) >= 0)
-			}
+		return $gameMap.events().some(function(otherEvent) {
+			return otherEvent.pos(x, y) && otherEvent.eventId() !== $gameTemp.activeEvent().eventId() && !otherEvent.isThrough() &&
+			 !otherEvent.isErased() && (['enemy', 'actor', 'playerEvent'].contains(otherEvent.isType()));
 		});
 	};
 
@@ -387,7 +387,7 @@
 			else if (a.battleMode() !== 'region ' + region1 && a.battleMode() !== 'region ' + region2) return 'region ' + region1;
 			else return a.battleMode();
 		} else if (meta.match(/keepDist\s+(\d+)/i)){//<aiMove:'keepDist x'>
-			atkDist = meta.match(/keepDist\s+(\d+)/i)[1];
+			var atkDist = meta.match(/keepDist\s+(\d+)/i)[1];
 			var ctrlDist = false;
 			if(meta.match(/keepDist\s+(\d+)\s+(\d+)/i)) ctrlDist = meta.match(/keepDist\s+(\d+)\s+(\d+)/i)[2];
 			this.makeMoveTable(this.posX(), this.posY(), a.srpgMove(), [0], a.srpgThroughTag());
