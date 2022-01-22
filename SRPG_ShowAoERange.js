@@ -1,4 +1,4 @@
-//=============================================================================
+.//=============================================================================
 // SRPG_ShowAoERange.js
 //-----------------------------------------------------------------------------
 //Free to use and edit     v.1.04 Fix bug for range 0 skills
@@ -29,6 +29,7 @@
  * Tiles within attack range will be colored red, tiles not within attack range but within AoE range
  * will be colored differently.
  * ====================================================================================================
+ * v.1.05 Fix bug for attack skill id, fix a bug for range 0 AoE show range.
  * v.1.04 Fix bug for range 0 skills
  * v.1.03 Improved algorithm, no it's much faster!
  * Complexity change from O(m^2 * r^2 * a^2 * 4^3) to O((m + r)^2 * a^2 * 4^2) !
@@ -61,6 +62,9 @@
 			$gameTemp.clearMoveTable();
 			event.makeMoveTable(event.posX(), event.posY(), user.srpgMove(), null, user.srpgThroughTag());
 			user.skills().forEach(function(item){//all skills
+				if (item.id === 1){
+					item = $dataSkills[user.attackSkillId()];
+				}
 				if (!user.srpgCanShowRange(item)) return;//if not useable don't show
 				var range = user.srpgSkillRange(item);
 				var areaRange = Number(item.meta.srpgAreaRange) || 0;
@@ -92,11 +96,11 @@
 		var width = $gameMap.width();
 		var height = $gameMap.height();
 		var edges = [[x, y, range, [0], []]];
-		if (range == 0) $gameTemp.setAoETable(x, y, areaRange, areaminRange, shape, d, skill, range, [0]);
 		if (minRange <= 0 && $gameTemp.RangeTable(x, y)[0] < 0) {
 			if ($gameTemp.MoveTable(x, y)[0] < 0) $gameTemp.pushRangeList([x, y, true]);
 			$gameTemp.setRangeTable(x, y, range, [0]);
 		}
+		if (range == 0) return $gameTemp.setAoETable(x, y, areaRange, areaminRange, shape, d, skill, range, [0]);
 		$gameMap.makeSrpgLoSTable(this);
 		for (var i = 0; i < edges.length; i++) {
 			var cell = edges[i];
@@ -133,10 +137,8 @@
 		var rlim = 1 + aMax * 2;
 		for (var m = 0; m < rlim; ++m) {
 			for (var n =0; n < rlim; ++n) {
-				var aoex = dx + m - aMax;
-				var aoey = dy + n - aMax;
-				if ($gameMap.isLoopVertical()) aoex = ((aoex % width) + width) % width;
-				if ($gameMap.isLoopHorizontal()) aoey = ((aoey % height) + height) % height;
+				var aoex = $gameMap.roundX(dx + m - aMax);
+				var aoey = $gameMap.roundY(dy + n - aMax);
 				if ($gameMap.isValid(aoex, aoey) && this.RangeTable(aoex, aoey)[0] < 0 && 
 					$gameMap.inArea(m-aMax, n-aMax, aMax, aMin, shape, d)) {
 					this.setRangeTable(aoex, aoey, - 1, 'AoE');
@@ -217,10 +219,9 @@
 	};
 
 	Game_Map.prototype.isOccupied = function(x, y){
-		return $gameMap.eventsXyNt(x, y).some(function(otherEvent) {
-			if (otherEvent.eventId() !== $gameTemp.activeEvent().eventId() && !otherEvent.isErased()) {
-				return (otherEvent.pos(x, y) && ['enemy', 'actor', 'playerEvent'].indexOf(otherEvent.isType()) >= 0)
-			}
+		return $gameMap.events().some(function(otherEvent) {
+			return otherEvent.pos(x, y) && otherEvent.eventId() !== $gameTemp.activeEvent().eventId() && !otherEvent.isThrough() &&
+			 !otherEvent.isErased() && (['enemy', 'actor', 'playerEvent'].contains(otherEvent.isType()));
 		});
 	};
 
