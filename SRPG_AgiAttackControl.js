@@ -1,6 +1,6 @@
 //=============================================================================
 //SRPG_AgiAttackControl.js
-// v1.01 change and add notetags
+// v 1.03 better compatibility for getAgiAttackTime function.
 //=============================================================================
 /*:
  * @plugindesc More control over the Agiattack rule, support AoE agi Attack, v1.01 change and add notetags
@@ -56,6 +56,7 @@
  * You can also use (dif/b.agi) * 2, dif > Math.randomInt(100) ? 1:0, etc.
  * if result is a float number like 3.1415... only the integer part will be taken into account.
  * ===================================================================================================
+ * v 1.03 better compatibility for getAgiAttackTime function.
  * v 1.02 fix a bug for negative agi Attack time.
  * v 1.01 change and add note tags, the note tags in previous version won't work now, use the new one instead!
  * v 1.00 first release
@@ -74,9 +75,8 @@
 
     //map battle logic
     Scene_Map.prototype.srpgAgiAttackPlus = function(agiUser, target, targetEvents){
-        if (agiUser.agi <= target.agi) return;
-        if (!agiUser.hasAgiAttackAction()) return;
         var agiTime = agiUser.getAgiAttackTime(target);
+        if (agiTime <= 0) return;
         var agiAction = _noCost ? agiUser.action(0).createNoCostAction() : agiUser.action(0);
         for (var i = 0; i < agiTime; i++){
             if (agiUser == $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1]){
@@ -88,6 +88,8 @@
     }
 
     Game_Battler.prototype.getAgiAttackTime = function(target){
+        if (this.agi <= target.agi) return 0;
+        if (!this.hasAgiAttackAction()) return 0;
         var dif = this.agi - target.agi;
         var a = this;
         var b = target;
@@ -143,12 +145,12 @@
                 var target = battlers[i];
                 var firstBattler = user.agi >= target.agi ? user : target;
                 var secondBattler = user.agi >= target.agi ? target : user;
-                if (firstBattler.hasAgiAttackAction()) {
-                    var agiTime = firstBattler.getAgiAttackTime(secondBattler);
+                var agiTime = firstBattler.getAgiAttackTime(secondBattler);
+                if (agiTime > 0){
                     var agiAction = firstBattler.action(0);
-                    if (firstBattler == user && i == 1 && agiTime > 0){
+                    if (firstBattler == user && i == 1){
                         firstBattler.reserveSameAction(agiTime, agiBattlers);
-                    } else if (firstBattler == target && agiTime > 0) {
+                    } else if (firstBattler == target) {
                         firstBattler.reserveSameAction(agiTime, agiBattlers);
                     }
                 }
@@ -196,7 +198,7 @@
     }
 
     Game_Action.prototype.canAgiAttack = function(){
-        return this.isForOpponent() && this.item() && !this.item().meta.doubleAction;
+        return this.item() && this.isForOpponent() && !this.item().meta.doubleAction;
     }
 
     Game_Action.prototype.createNoCostAction = function(){
