@@ -1,6 +1,6 @@
 //=============================================================================
 //SRPG_AoEAnimation.js
-// v 1.05 add map battle log window. Need to update the SRPG_DynamicAction to work. Fix a bug where agi attack continue when enemy is already dead.
+// v 1.06 Fix a bug of showing the wrong battler in battle result window.
 // Use my bug fix patch! Especially the SRPG_DynamicAction, the map AoE battle will work amazingly good!
 // Download here https://github.com/ShoukangHong/Shoukang_SRPG_plugin/tree/main/BugFixPatch
 //=============================================================================
@@ -84,6 +84,7 @@
  * ===================================================================================================
  * Credits to: Dopan, Dr. Q, Traverse, SoulPour777
  * ===================================================================================================
+ * v 1.06 Fix a bug of showing the wrong battler in battle result window.
  * v 1.05 add map battle log window. Need to update the SRPG_DynamicAction to work. Fix a bug where agi attack continue when enemy is already dead.
  * v 1.04 fixed some bugs and improve logic. Now the map battle should work completely the same as scene battle.  Also updates SRPG_DynamicAction
  * v 1.03 fixed some bugs
@@ -452,8 +453,8 @@
 
     //helper function
     Scene_Map.prototype.pushSrpgBattler = function(type, battler){
-        if (type === 'actor') $gameParty.pushSrpgBattleActors(battler);
-        else if (type === 'enemy') {
+        if (type === 'actor' || battler.isActor()) $gameParty.pushSrpgBattleActors(battler);
+        else if (type === 'enemy' || battler.isEnemy()) {
             $gameTroop.pushSrpgBattleEnemys(battler);
             $gameTroop.pushMembers(battler);
         }
@@ -810,7 +811,7 @@
         if (members.length > 0) {
             this.makeRewards();
             if (this.hasRewards()) {
-                this._srpgBattleResultWindow.setBattler(members[members.length - 1]);
+                this._srpgBattleResultWindow.setBattler(members[0]);
                 this._srpgBattleResultWindow.setRewards(this._rewards);
                 var se = {};
                 se.name = _rewardSe;
