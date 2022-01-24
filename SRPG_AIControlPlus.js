@@ -102,7 +102,7 @@
  * *target Formula*
  * a : user
  * b : target
- * dmg : estimated attack damage, this damage already considers attack time.
+ * dmg : estimated attack damage, this damage already considers attack time and damage overflow.
  * time: attack time.
  * hit : the probability to hit the target. It considers user hit and target eva. If you change the default hit rule by another plugin, this will not return the right value.
  * cri : the probability to do critical attack.
@@ -110,7 +110,7 @@
  * *counter Formula*
  * a : user
  * b : target
- * dmg : estimated counter attack damage, this damage already considers attack time.
+ * dmg : estimated counter attack damage, this damage already considers attack time and damage overflow.
  * time : counter attack time.
  * hit : gives the probability to hit the user. If you change the default hit rule by another plugin, this will not return the right value.
  * cri : the probability to do critical counter attack.
@@ -1020,14 +1020,33 @@
 
 })();
 // demo ai pos formulas...
-// preist <aiPos:[(1 + 0.2 * ([2,3].contains(tr) ? (tr - 1) : 0))* (f.ntd('foe') < 6 ? f.ntw('friend',5)/f.ntw('foe',5) : 1)/(0.03 * f.ntd('foe') + 1/(f.ntd('foe') + 0.1)),
-// (a.mhp/(a.hp + 1)) * Math.max(Math.min(0.8*a.mhp - a.hp, a.hp),0) * (f.isf('enemyFort') + f.isf('actorFort')) + (f.isf('actorFort') + f.isf('enemyFort') * 0.2 * Math.max(5 - f.ntd('foe'), 0))*0.16*a.mhp]>
-//   mag <aiPos:[(1 + 0.2 * ([2,3].contains(tr) ? (tr - 1) : 0)) * (f.ntd('foe') < 6 ? f.ntw('friend',5)/f.ntw('foe',5):1)/(0.06 * f.ntd('foe') + 1/(f.ntd('foe') + 0.2)),
-//    (a.mhp/(a.hp + 1)) * Math.max(Math.min(0.7*a.mhp - a.hp, a.hp),0) * (f.isf('enemyFort') + f.isf('actorFort')) + (f.isf('actorFort') + f.isf('enemyFort') * 0.2 * Math.max(5 - f.ntd('foe'), 0))*0.16*a.mhp]>
-//   arc <aiPos:[(1 + 0.2 * ([2,3].contains(tr) ? (tr - 1) : 0)) * (f.ntd('foe') < 6 ? f.ntw('friend',5)/f.ntw('foe',5):1)/(0.09 * f.ntd('foe') + 1/(f.ntd('foe') + 0.2)),
-//     (a.mhp/(a.hp + 1)) * Math.max(Math.min(0.7*a.mhp - a.hp, a.hp),0) * (f.isf('enemyFort') + f.isf('actorFort')) + (f.isf('actorFort') + f.isf('enemyFort') * 0.25 * Math.max(5 - f.ntd('foe'), 0))*0.16*a.mhp]>
-// swo <aiPos:[(1 + 0.2 * ([2,3].contains(tr) ? (tr - 1) : 0)) / (0.5 + 0.25 * f.ntd('foe',5)) * (f.ntd('foe',5) < 5 ? f.ntw('friend',5)/f.ntw('foe',5): 1),
-//    (a.mhp/(a.hp + 1)) * Math.max(Math.min(0.6*a.mhp - a.hp, a.hp),0) * (f.isf('enemyFort') + f.isf('actorFort')) + (f.isf('actorFort') + f.isf('enemyFort') * 0.25 * Math.max(5 - f.ntd('foe'), 0))*0.18*a.mhp]>
-//    gen <aiPos:[(1 + 0.25 * ([2,3].contains(tr) ? (tr - 1) : 0)) / (0.5 + 0.25 * f.ntd('foe',5)) * (f.ntd('foe',5) < 5 ? (f.ntw('friend',5)/f.ntw('foe',5)) : 1),
-// (a.mhp/(a.hp + 1)) *Math.max(Math.min(0.6*a.mhp - a.hp, a.hp),0)  * (f.isf('enemyFort') + f.isf('actorFort')) + (f.isf('actorFort') + f.isf('enemyFort') * 0.3 * Math.max(5 - f.ntd('foe'), 0))*0.2*a.mhp]>
- 
+// swo <aiPos:[(1/(0.75 + 0.25 * f.ntd('foe'))) * (f.ntd('foe') < 6 ? (1 + 0.05 * ([2,3].contains(tr) ? tr*tr : 0)) * Math.min((f.ntw('friend',5)+3)/(f.ntw('foe',5)+2), 1.5): 1),
+// (a.mhp/(a.hp + 1)) * Math.max(Math.min(0.75*a.mhp - a.hp, a.hp,0.2*a.mhp),0) * (f.isf('enemyFort') + f.isf('actorFort') + (f.ntd('foe') < 6 ? (f.ntd('foe')-1)/10:0)) + (f.isf('actorFort') + f.isf('enemyFort') * 0.25 * Math.max(5 - f.ntd('foe'), 0))*0.18*a.mhp]>
+
+// gen <aiPos:[(1/(0.7 + 0.3 * f.ntd('foe'))) * (f.ntd('foe') < 6 ? (1 + 0.06 * ([2,3].contains(tr) ? tr*tr : 0)) * Math.min((f.ntw('friend',5)+3)/(f.ntw('foe',5)+2), 1.3) : 1),
+// (a.mhp/(a.hp + 1)) *Math.max(Math.min(0.7*a.mhp - a.hp, a.hp,0.2*a.mhp),0)  * (f.isf('enemyFort') + f.isf('actorFort') + (f.ntd('foe') < 6 ? (f.ntd('foe')-1)/10:0)) + (f.isf('actorFort') + f.isf('enemyFort') * 0.3 * Math.max(5 - f.ntd('foe'), 0))*0.2*a.mhp]>
+
+// arc <aiPos:[(f.ntd('foe') < 6 ? (1 + 0.05 * ([2,3].contains(tr) ? tr*tr : 0))*Math.min((f.ntw('friend',5)+2)/(f.ntw('foe',5)+1), 1.7):1)/(0.15 + 0.05 * f.ntd('foe') + 1/(f.ntd('foe') + 0.5)),
+// (a.mhp/(a.hp + 1)) * Math.max(Math.min(0.8*a.mhp - a.hp, a.hp,0.2*a.mhp),0) * (f.isf('enemyFort') + f.isf('actorFort') + (f.ntd('foe') < 6 ? (f.ntd('foe')-1)/10:0)) + (f.isf('actorFort') + f.isf('enemyFort') * 0.25 * Math.max(5 - f.ntd('foe'), 0))*0.16*a.mhp]>
+
+// mag <aiPos:[(f.ntd('foe') < 6 ? (1 + 0.05 * ([2,3].contains(tr) ? tr*tr : 0))*Math.min((f.ntw('friend',5)+2)/(f.ntw('foe',5)+1), 2):1)/(0.05 + 0.05 * f.ntd('foe') + 1/(f.ntd('foe') + 0.5)),
+// (a.mhp/(a.hp + 1)) * Math.max(Math.min(0.9*a.mhp - a.hp, a.hp,0.2*a.mhp),0) * (f.isf('enemyFort') + f.isf('actorFort') + (f.ntd('foe') < 6 ? (f.ntd('foe')-1)/10:0)) + (f.isf('actorFort') + f.isf('enemyFort') * 0.2 * Math.max(5 - f.ntd('foe'), 0))*0.16*a.mhp]>
+
+// pre <aiPos:[(f.ntd('foe') < 6 ? (1 + 0.05 * ([2,3].contains(tr) ? tr*tr : 0))* Math.min((f.ntw('friend',5)+2)/(f.ntw('foe',5)+1), 3) : 1)/(0.05 * f.ntd('foe') + 1/(f.ntd('foe') + 0.5)),
+// (a.mhp/(a.hp + 1)) * Math.max(Math.min(0.9*a.mhp - a.hp, a.hp,0.2*a.mhp),0) * (f.isf('enemyFort') + f.isf('actorFort') + (f.ntd('foe') < 6 ? (f.ntd('foe')-1)/10:0)) + (f.isf('actorFort') + f.isf('enemyFort') * 0.2 * Math.max(5 - f.ntd('foe'), 0))*0.16*a.mhp]>
+
+// demo actor ai pos formulas that you can try
+// swo <aiPos:[(1/(0.75 + 0.25 * f.ntd('foe'))) * (f.ntd('foe') < 6 ? (1 + 0.05 * ([2,3].contains(tr) ? tr*tr : 0)) * Math.min((f.ntw('friend',5)+3)/(f.ntw('foe',5)+2), 1.5): 1),
+// (a.mhp/(a.hp + 1)) * Math.max(Math.min(0.75*a.mhp - a.hp, a.hp,0.2*a.mhp),0) * (f.isf('enemyFort') + f.isf('actorFort') + (f.ntd('foe') < 6 ? (f.ntd('foe')-1)/10:0)) + (f.isf('enemyFort') + f.isf('actorFort') * 0.25 * Math.max(5 - f.ntd('foe'), 0))*0.18*a.mhp]>
+
+// gen <aiPos:[(1/(0.7 + 0.3 * f.ntd('foe'))) * (f.ntd('foe') < 6 ? (1 + 0.06 * ([2,3].contains(tr) ? tr*tr : 0)) * Math.min((f.ntw('friend',5)+3)/(f.ntw('foe',5)+2), 1.3) : 1),
+// (a.mhp/(a.hp + 1)) *Math.max(Math.min(0.7*a.mhp - a.hp, a.hp,0.2*a.mhp),0)  * (f.isf('enemyFort') + f.isf('actorFort') + (f.ntd('foe') < 6 ? (f.ntd('foe')-1)/10:0)) + (f.isf('enemyFort') + f.isf('actorFort') * 0.3 * Math.max(5 - f.ntd('foe'), 0))*0.2*a.mhp]>
+
+// arc <aiPos:[(f.ntd('foe') < 6 ? (1 + 0.05 * ([2,3].contains(tr) ? tr*tr : 0))*Math.min((f.ntw('friend',5)+2)/(f.ntw('foe',5)+1), 1.7):1)/(0.15 + 0.05 * f.ntd('foe') + 1/(f.ntd('foe') + 0.5)),
+// (a.mhp/(a.hp + 1)) * Math.max(Math.min(0.8*a.mhp - a.hp, a.hp,0.2*a.mhp),0) * (f.isf('enemyFort') + f.isf('actorFort') + (f.ntd('foe') < 6 ? (f.ntd('foe')-1)/10:0)) + (f.isf('enemyFort') + f.isf('actorFort') * 0.25 * Math.max(5 - f.ntd('foe'), 0))*0.16*a.mhp]>
+
+// mag <aiPos:[(f.ntd('foe') < 6 ? (1 + 0.05 * ([2,3].contains(tr) ? tr*tr : 0))*Math.min((f.ntw('friend',5)+2)/(f.ntw('foe',5)+1), 2):1)/(0.05 + 0.05 * f.ntd('foe') + 1/(f.ntd('foe') + 0.5)),
+// (a.mhp/(a.hp + 1)) * Math.max(Math.min(0.9*a.mhp - a.hp, a.hp,0.2*a.mhp),0) * (f.isf('enemyFort') + f.isf('actorFort') + (f.ntd('foe') < 6 ? (f.ntd('foe')-1)/10:0)) + (f.isf('enemyFort') + f.isf('actorFort') * 0.2 * Math.max(5 - f.ntd('foe'), 0))*0.16*a.mhp]>
+
+// pre <aiPos:[(f.ntd('foe') < 6 ? (1 + 0.05 * ([2,3].contains(tr) ? tr*tr : 0))* Math.min((f.ntw('friend',5)+2)/(f.ntw('foe',5)+1), 3) : 1)/(0.05 * f.ntd('foe') + 1/(f.ntd('foe') + 0.5)),
+// (a.mhp/(a.hp + 1)) * Math.max(Math.min(0.9*a.mhp - a.hp, a.hp,0.2*a.mhp),0) * (f.isf('enemyFort') + f.isf('actorFort') + (f.ntd('foe') < 6 ? (f.ntd('foe')-1)/10:0)) + (f.isf('enemyFort') + f.isf('actorFort') * 0.2 * Math.max(5 - f.ntd('foe'), 0))*0.16*a.mhp]>
