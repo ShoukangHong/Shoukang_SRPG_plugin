@@ -102,7 +102,7 @@
  * *target Formula*
  * a : user
  * b : target
- * dmg : estimated attack damage, this damage already considers attack time.
+ * dmg : estimated attack damage, this damage already considers attack time and damage overflow.
  * time: attack time.
  * hit : the probability to hit the target. It considers user hit and target eva. If you change the default hit rule by another plugin, this will not return the right value.
  * cri : the probability to do critical attack.
@@ -110,7 +110,7 @@
  * *counter Formula*
  * a : user
  * b : target
- * dmg : estimated counter attack damage, this damage already considers attack time.
+ * dmg : estimated counter attack damage, this damage already considers attack time and damage overflow.
  * time : counter attack time.
  * hit : gives the probability to hit the user. If you change the default hit rule by another plugin, this will not return the right value.
  * cri : the probability to do critical counter attack.
