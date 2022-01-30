@@ -1,0 +1,12 @@
+h2.blog-post-title {
+	font-size: 2em;
+}
+
+img.demo-gif {
+	width:600px;
+	height:338px;
+}
+
+.active {
+	background-color: lightgray;
+}

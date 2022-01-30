@@ -102,6 +102,7 @@
  * *target Formula*
  * a : user
  * b : target
+ * sdmg: single attack damage, this damage doesn't consider attack time and damage overflow.
  * dmg : estimated attack damage, this damage already considers attack time and damage overflow.
  * time: attack time.
  * hit : the probability to hit the target. It considers user hit and target eva. If you change the default hit rule by another plugin, this will not return the right value.
@@ -110,6 +111,7 @@
  * *counter Formula*
  * a : user
  * b : target
+ * sdmg: single attack damage, this damage doesn't consider attack time and damage overflow.
  * dmg : estimated counter attack damage, this damage already considers attack time and damage overflow.
  * time : counter attack time.
  * hit : gives the probability to hit the user. If you change the default hit rule by another plugin, this will not return the right value.
@@ -158,6 +160,7 @@
  * Needs SRPG_rangeControl, SRPG_AIControl, SRPG_AoE, SRPG_PositionEffects, SRPG_MoveMethod, Place it below all of them.
  * My suggestion is to use the same setup as my demo. Otherwise, I'm not sure what might break it.(Not fully tested yet)
  * ===========================================================================================================================
+ * V 1.01 add sdmg to target and counter formula.
  * V 1.00 first release!
  *
  */
@@ -531,14 +534,15 @@
     var a = user;
     var b = target;
     var item = action.item();
-    var dmg = action.srpgPredictionDamageWithAgi(b);
+    var sdmg = action.srpgPredictionDamage(b) * (action.isForFriend() ? -1 : 1);
+    var dmg = action.srpgPredictionDamageWithAgi(b, sdmg);
     var time = a.getAgiAttackTime(b) + 1;
     var hit = action.srpgPredictionHitRate(b);
     var cri = action.itemCri(b);
     score *= eval(targetFormula);
     return {
       score: score,
-      singleDmg: dmg/time,
+      singleDmg: sdmg,
       target: b
     };
   };
@@ -571,7 +575,9 @@
     var b = target;
     var action = new Game_Action(target);
     action.setSkill(target.attackSkillId());
-    var dmg = action.srpgPredictionDamageWithAgi(a);
+    if (action.isForFriend()) return 0;
+    var sdmg = action.srpgPredictionDamage(a);
+    var dmg = action.srpgPredictionDamageWithAgi(a, sdmg);
     var time = b.getAgiAttackTime(a)+ 1;
     var hit = action.srpgPredictionHitRate(a);
     var cri = action.itemCri(a);
@@ -935,20 +941,19 @@
     return skillList;
   };
 
-  Game_Action.prototype.srpgPredictionDamageWithAgi = function(target) {
+  Game_Action.prototype.srpgPredictionDamageWithAgi = function(target, singleDmg) {
     var user = this.subject();
-    var score = (this.srpgPredictionDamage(target)) * (1 + user.getAgiAttackTime(target));
-    score = this.isForFriend() ? - score : score
+    var dmg = singleDmg * (1 + user.getAgiAttackTime(target));
     if (this.isHpRecover()) {
-        score = Math.min(score, target.mhp - target.hp);
+        dmg = Math.min(dmg, target.mhp - target.hp);
     } else if (this.isHpEffect() && this.isDamage()){
-      score = Math.min(score, target.hp);
+      dmg = Math.min(dmg, target.hp);
     } else if (this.isMpRecover()) {
-        score = Math.min(score, target.mmp - target.mp);
+        dmg = Math.min(dmg, target.mmp - target.mp);
     } else if(this.isMpEffect() && this.isDamage()){
-      score = Math.min(score, target.mp);
+      dmg = Math.min(dmg, target.mp);
     }
-    return score;
+    return dmg;
   };
 
   Game_Action.prototype.srpgPredictionItemEffect = function(target, effect) {
