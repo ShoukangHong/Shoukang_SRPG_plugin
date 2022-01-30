@@ -1,26 +1,146 @@
 [{
 	"name":"SRPG_AIControlPlus",
 	"date":"Jan 25 2022",
-	"version": "1.0",
+	"version": "v1.0",
 	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_AIControlPlus.js",
 	"contents" : [{
-		"description":"This is some additional paragraph placeholder content. It has been written to fill the available space and show how a longer snippet of text affects the surrounding content.",
-		"image" : "/images/SRPG_AIControlPlus.gif"
-	},{
-		"description":"This is sefo qwehqwo qeuiq qweoo qwiiuqwe",
-		"image" : "/images/SRPG_AIControlPlus.gif"		
+		"description":"This plugin replaces the AI target formula rules in SRPG_AIControl with a new one. With proper setup, AI units can behave intellegently.<br>This plugin also allow AI units to search for all possible combinations of skills, target positions, and moves positions. It will then then pick the combination with the highest score.",
+		"image" : false,
+		"extra" : "<br><iframe width=\"600\" height=\"388\" src= \"https://www.youtube.com/embed/GleI2JwNFTA\"></iframe>"
 	}]
 
 },{
+	"name":"SRPG_AdvancedInteraction",
+	"date":"Oct 29 2021",
+	"version": "v1.06",
+	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_AdvancedInteraction.js",
+	"contents" : [{
+		"description":"Rather than simply wait on an event to trigger an event, this plugin allows you to trigger an event via interaction commands. The interaction commands automatically appear when there are interactable events.",
+		"image" : "/images/advancedInteraction.gif"
+	},{
+		"description":"This plugin also includes a build-in interaction type: wrap. You can not only use it with events but also use it as a skill.",
+		"image" : "/images/advancedInteractionWrap.gif"		
+	}]
+
+},{
+	"name":"SRPG_AgiAttackControl",
+	"date":"Jan 21 2021",
+	"version": "v1.03",
+	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_AgiAttackControl.js",
+	"contents" : [{
+		"description":"This plugin provides more control over the Agiattack rules, multiple attacks/counter-attacks can be made based on agility difference. This plugin also supports AoE agi Attack.",
+		"image" : false
+	}]
+
+},{
+	"name":"SRPG_AoEAnimation",
+	"date":"Jan 21 2022",
+	"version": "v1.06",
+	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_AoEAnimation.js",
+	"contents" : [{
+		"description":"In the original SRPG Engine, each target is added to a queue and then the game will execute each battle individually 1 on 1. This script will collect all targets and add them into one battle for a 1 vs many scenarios. It works for both scene battle and map battle.<br>After several updates the plugin is more than just changing the animation. Counter attack sequence and distance, AoE Agi attack, AoE Exp distribution, and more issues are solved with this plugin. I'd rather call it AOE Battle Plus now.",
+		"image" : "/images/AoEanimationMap.gif"
+	},{
+		"description":"In the scene battle, the placement of battlers is based on their relative position on the map.",
+		"image" : "/images/AoEanimationScene.gif"
+	}]
+},{
+	"name":"SRPG_AuraSkill",
+	"date":"Oct 20 2021",
+	"version": "v1.06",
+	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_AuraSkill.js",
+	"contents" : [{
+		"description":"This plugin allows you to create Aura skills for SRPG battle. Once a unit walks into the aura range, a state will be added to the unit as the aura effect. You can have either passive aura skills that are always effective, or you can have active aura skills that need to be casted first.",
+		"image" : "/images/auraSkill.gif"
+	}]
+},{
 	"name":"SRPG_BattlePrepare",
-	"date":"Jan 25 2022",
-	"version": "1.0",
+	"date":"Jan 5 2022",
+	"version": "v1.07",
 	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_AIControlPlus.js",
 	"contents" : [{
-		"description":"This is some additional paragraph placeholder content. It has been written to fill the available space and show how a longer snippet of text affects the surrounding content.",
-		"image" : "/images/SRPG_AIControlPlus.gif"
-	},{
-		"description":"This is sefo qwehqwo qeuiq qweoo qwiiuqwe",
-		"image" : "/images/SRPG_AIControlPlus.gif"		
+		"description":"this plugin adds battle preparation phase to the beginning of SRPG battle. It allows you to change, remove, add battlers, and switch battler positions before the battle. You can also view enemies, shop, and manage equipment before the battle.",
+		"image" : "/images/battlePrepare.gif"
+	}]
+},{
+	"name":"SRPG_BattleResultAutoClose",
+	"date":"Aug 23 2021",
+	"version": "v1.00",
+	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_BattleResultAutoClose.js",
+	"contents" : [{
+		"description":"A simple plugin that automatically closes the battle results window.",
+		"image" : false
+	}]
+},{
+	"name":"SRPG_ExpControl",
+	"date":"Aug 23 2021",
+	"version": "v1.00",
+	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_ExpControl.js",
+	"contents" : [{
+		"description":"A simple plugin that allows user to set exp for each skill.",
+		"image" : false
+	}]
+},{
+	"name":"SRPG_ModifiedMoveTable",
+	"date":"Aug 12 2021",
+	"version": "v1.01",
+	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_ModifiedMoveTable.js",
+	"contents" : [{
+		"description":"The plugin provides control over different terrain move costs and modifies the makeMoveTable function to provide a Fire-Emblem-like move rules.",
+		"image" : false
+	}]
+},{
+	"name":"SRPG_MoveAfterAction",
+	"date":"Oct 20 2021",
+	"version": "v1.03",
+	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_MoveAfterAction.js",
+	"contents" : [{
+		"description":"A simple plugin that allows certain units to use their remaining move after action.",
+		"image" : "/images/moveAfterAction.gif"
+	}]
+},{
+	"name":"SRPG_MoveMethod",
+	"date":"Jan 21 2022",
+	"version": "v1.04",
+	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_MoveMethod.js",
+	"contents" : [{
+		"description":"When there is no valid target within the attack range, the AI will need to search for a route to the target. This plugin changes the pathfinding algorithm such that it takes into account obstacles and terrain costs.<br>This plugin also provides various built-in move modes. With some coding knowledge, you can choose different move modes in different situations.",
+		"image" : "/images/moveMethod.gif"
+	}]
+},{
+	"name":"SRPG_ShowAoERange",
+	"date":"Jan 21 2022",
+	"version": "v1.04",
+	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_ShowAoERange.js",
+	"contents" : [{
+		"description":"The original attack range only shows the battler's default skill range. This plugin will show the range and AoE Range of all available skills for a battler.",
+		"image" : false
+	}]
+},{
+	"name":"SRPG_StatusWindow",
+	"date":"Dec 21 2021",
+	"version": "v1.01",
+	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_StatusWindow.js",
+	"contents" : [{
+		"description":"This plugin allows you to display multiple status pages during SRPG battles. It also provides functions for you to draw things like equipments, skills, and elements. Feel free to DIY windows!",
+		"image" : false
+	}]
+},{
+	"name":"SRPG_Summon",
+	"date":"Jan 21 2022",
+	"version": "v1.01",
+	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_Summon.js",
+	"contents" : [{
+		"description":"This plugin allows you to summon events by coping events from a summon map. You can summon units or objects by using skills or triggering events.",
+		"image" : false
+	}]
+},{
+	"name":"SRPG_TerrainEffectWindow",
+	"date":"Nov 15 2021",
+	"version": "v1.00",
+	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_TerrainEffectWindow.js",
+	"contents" : [{
+		"description":"This plugin displays terrain effects through a window in the scene.",
+		"image" : "/images/terrainEffectWindow.gif"
 	}]
 }]

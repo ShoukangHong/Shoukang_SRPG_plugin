@@ -1,10 +1,4 @@
 (function (global) {
-
-$(function () {
-  $("nav>a").click(function (event) {
-    switchNavBarActive(event.target.id);
-  });
-});
 // Convenience function for inserting innerHTML for 'select'
 var setHtml = function (selector, html) {
   var targetElem = document.querySelector(selector);
@@ -36,19 +30,26 @@ global._snippetsFiles = [{name: "pluginHeader", url: "snippets/pluginHeader.html
                           {name: "pluginList", url:"snippets/pluginList.html"}]
 
 // On page load (before images or CSS)
-document.addEventListener("DOMContentLoaded", initialize);
+$(initialize);
 
 function initialize() {
   initSnippets();
+  initHandlers();
+  switchNavBarActive("plugins-nav");
   showPlugins();
-  switchNavBarActive("plugins-nav")
+};
+
+function initHandlers(){
+  $("nav>a").click(function (event) {
+    switchNavBarActive(event.target.id);
+  });
 };
 
 function initSnippets(){
   global._snippetsFiles.forEach(function(info){
     loadSnippet(info.name, info.url)
   });
-}
+};
 
 function loadSnippet(name, url) {
   $ajaxUtils.sendGetRequest(url, function (html) {
@@ -75,14 +76,17 @@ function buildAndShowPlugins (plugins) {
 function buildPluginMainHtml (plugin) {
   var html = global.$snippets["pluginHeader"];
   for (property in plugin){
-    console.log(property)
     html = insertProperty(html, property, plugin[property]);
   }
   var body = "";
   plugin.contents.forEach(function (content) {
     var piece = global.$snippets["pluginBody"];
-    for (property in content){
-      piece = insertProperty(piece, property, content[property]);
+    piece = insertProperty(piece, "description", content["description"]);
+    piece = insertProperty(piece, "image", content["image"]);
+    piece = insertProperty(piece, "extra", content["extra"]||"");
+    if (content['image']){
+      piece = piece.replace(new RegExp('<!--', "g"), "");
+      piece = piece.replace(new RegExp('-->', "g"), "");
     }
     body += piece
   })
