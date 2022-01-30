@@ -16,10 +16,10 @@
 	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_AdvancedInteraction.js",
 	"contents" : [{
 		"description":"Rather than simply wait on an event to trigger an event, this plugin allows you to trigger an event via interaction commands. The interaction commands automatically appear when there are interactable events.",
-		"image" : "/images/advancedInteraction.gif"
+		"image" : "images/advancedInteraction.gif"
 	},{
 		"description":"This plugin also includes a build-in interaction type: wrap. You can not only use it with events but also use it as a skill.",
-		"image" : "/images/advancedInteractionWrap.gif"		
+		"image" : "images/advancedInteractionWrap.gif"		
 	}]
 
 },{
@@ -39,10 +39,10 @@
 	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_AoEAnimation.js",
 	"contents" : [{
 		"description":"In the original SRPG Engine, each target is added to a queue and then the game will execute each battle individually 1 on 1. This script will collect all targets and add them into one battle for a 1 vs many scenarios. It works for both scene battle and map battle.<br>After several updates the plugin is more than just changing the animation. Counter attack sequence and distance, AoE Agi attack, AoE Exp distribution, and more issues are solved with this plugin. I'd rather call it AOE Battle Plus now.",
-		"image" : "/images/AoEanimationMap.gif"
+		"image" : "images/AoEAnimationMap.gif"
 	},{
 		"description":"In the scene battle, the placement of battlers is based on their relative position on the map.",
-		"image" : "/images/AoEanimationScene.gif"
+		"image" : "images/AoEAnimationScene.gif"
 	}]
 },{
 	"name":"SRPG_AuraSkill",
@@ -51,7 +51,7 @@
 	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_AuraSkill.js",
 	"contents" : [{
 		"description":"This plugin allows you to create Aura skills for SRPG battle. Once a unit walks into the aura range, a state will be added to the unit as the aura effect. You can have either passive aura skills that are always effective, or you can have active aura skills that need to be casted first.",
-		"image" : "/images/auraSkill.gif"
+		"image" : "images/auraSkill.gif"
 	}]
 },{
 	"name":"SRPG_BattlePrepare",
@@ -60,7 +60,7 @@
 	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_AIControlPlus.js",
 	"contents" : [{
 		"description":"this plugin adds battle preparation phase to the beginning of SRPG battle. It allows you to change, remove, add battlers, and switch battler positions before the battle. You can also view enemies, shop, and manage equipment before the battle.",
-		"image" : "/images/battlePrepare.gif"
+		"image" : "images/battlePrepare.gif"
 	}]
 },{
 	"name":"SRPG_BattleResultAutoClose",
@@ -96,7 +96,7 @@
 	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_MoveAfterAction.js",
 	"contents" : [{
 		"description":"A simple plugin that allows certain units to use their remaining move after action.",
-		"image" : "/images/moveAfterAction.gif"
+		"image" : "images/moveAfterAction.gif"
 	}]
 },{
 	"name":"SRPG_MoveMethod",
@@ -105,7 +105,7 @@
 	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_MoveMethod.js",
 	"contents" : [{
 		"description":"When there is no valid target within the attack range, the AI will need to search for a route to the target. This plugin changes the pathfinding algorithm such that it takes into account obstacles and terrain costs.<br>This plugin also provides various built-in move modes. With some coding knowledge, you can choose different move modes in different situations.",
-		"image" : "/images/moveMethod.gif"
+		"image" : "images/moveMethod.gif"
 	}]
 },{
 	"name":"SRPG_ShowAoERange",
@@ -141,6 +141,6 @@
 	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_TerrainEffectWindow.js",
 	"contents" : [{
 		"description":"This plugin displays terrain effects through a window in the scene.",
-		"image" : "/images/terrainEffectWindow.gif"
+		"image" : "images/terrainEffectWindow.gif"
 	}]
 }]
