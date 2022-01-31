@@ -79,7 +79,7 @@ img.demo-gif {
 		font-size: 75%;
 	}
 	h2.blog-post-title{
-		font-size: 75%;
+		font-size: 200%;
 	}
 }
 @media (min-width: 568px) and (max-width: 767px) {
@@ -95,7 +95,7 @@ img.demo-gif {
 		font-size: 70%;
 	}
 	h2.blog-post-title{
-		font-size: 70%;
+		font-size: 180%;
 	}
 }
 
@@ -109,9 +109,9 @@ img.demo-gif {
 		-webkit-transform-origin: 0 0;
 	}
 	#side-list{
-		font-size: 65%;
+		font-size: 70%;
 	}
 	h2.blog-post-title{
-		font-size: 65%;
+		font-size: 160%;
 	}
 }
