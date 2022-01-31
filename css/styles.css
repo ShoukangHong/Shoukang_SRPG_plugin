@@ -77,6 +77,9 @@ img.demo-gif {
 	#side-list{
 		font-size: 0.75em;
 	}
+	h2.blog-post-title{
+		font-size: 0.75em;
+	}
 }
 @media (max-width: 767px) {
   #demoGame {
@@ -88,6 +91,9 @@ img.demo-gif {
 		-webkit-transform-origin: 0 0;
 	}
 	#side-list{
+		font-size: 0.75em;
+	}
+	h2.blog-post-title{
 		font-size: 0.75em;
 	}
 }
