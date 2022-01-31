@@ -6,7 +6,7 @@
 	"contents" : [{
 		"description":"This plugin replaces the AI target formula rules in SRPG_AIControl with a new one. With proper setup, AI units can behave intellegently.<br>This plugin also allow AI units to search for all possible combinations of skills, target positions, and moves positions. It will then then pick the combination with the highest score.",
 		"image" : false,
-		"extra" : "<br><iframe width=\"600\" height=\"388\" src= \"https://www.youtube.com/embed/GleI2JwNFTA\"></iframe>"
+		"extra" : "<br><iframe width=\"600\" height=\"388\" src= \"https://www.youtube.com/embed/GleI2JwNFTA\" fullscreen></iframe>"
 	}]
 
 },{
