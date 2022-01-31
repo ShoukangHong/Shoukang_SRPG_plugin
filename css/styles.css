@@ -74,9 +74,6 @@ img.demo-gif {
 }
 
 @media (min-width: 480px) and (max-width: 767px) {
-	.nav-scroller{
-		font-size: 90%;
-	}
 	h2.blog-post-title{
 		font-size: 160%;
 	}
@@ -84,9 +81,6 @@ img.demo-gif {
 
 
 @media (max-width: 479px) {
-	.nav-scroller{
-		font-size: 2vw;
-	}
 	h2.blog-post-title{
 		font-size: 140%;
 	}
