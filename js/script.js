@@ -20,16 +20,20 @@ var insertProperty = function (string, propName, propValue) {
   return string;
 };
 
-var homeHtmlUrl = "snippets/home-snippet.html";
+var introductionUrl = "pages/introduction.html";
 var pluginsUrl = "data/plugins.json";
+var demoUrl = "pages/demo.html";
+var resourcesURL = "pages/resources.html";
+var tipsURL = "pages/tips.html";
 var pluginHeaderHtml = "snippets/pluginHeader.html";
 var pluginBodyHtml = "snippets/pluginBody.html";
 global.$snippets = {};
-global._snippetsFiles = [{name: "pluginHeader", url: "snippets/pluginHeader.html"},
+global.$snippetFiles = [{name: "pluginHeader", url: "snippets/pluginHeader.html"},
                           {name: "pluginBody", url: "snippets/pluginBody.html"},
-                          {name: "pluginList", url:"snippets/pluginList.html"}]
+                          {name: "pluginListHeader", url:"snippets/pluginListHeader.html"},
+                          {name: "pluginListBody", url:"snippets/pluginListBody.html"},
+                          {name: "links", url:"snippets/links.html"}];
 
-// On page load (before images or CSS)
 $(initialize);
 
 function initialize() {
@@ -39,27 +43,64 @@ function initialize() {
   showPlugins();
 };
 
-function initHandlers(){
-  $("nav>a").click(function (event) {
-    switchNavBarActive(event.target.id);
-  });
-};
-
+//Snippets
 function initSnippets(){
-  global._snippetsFiles.forEach(function(info){
+  $snippetFiles.forEach(function(info){
     loadSnippet(info.name, info.url)
   });
 };
 
 function loadSnippet(name, url) {
   $ajaxUtils.sendGetRequest(url, function (html) {
-      global.$snippets[name] = html;
+      $snippets[name] = html;
     }, false);
 };
 
-function showPlugins(){
-  $ajaxUtils.sendGetRequest(pluginsUrl, buildAndShowPlugins, true);
+function isSnippetsReady() {
+  return $snippetFiles.every(function(fileInfo) {
+    return !!$snippets[fileInfo.name];
+  });
+};
+
+function initHandlers(){
+  $("#introduction-nav").click(function (event) {
+    if (!event.target.className.includes("active")) showIntroduction();
+    switchNavBarActive(event.target.id);
+  });
+  $("#plugins-nav").click(function (event) {
+    if (!event.target.className.includes("active")) showPlugins();
+    switchNavBarActive(event.target.id);
+  });
+  $("#demo-nav").click(function (event) {
+    if (!event.target.className.includes("active")) showDemo();
+    switchNavBarActive(event.target.id);
+  });
+  $("#resources-nav").click(function (event) {
+    if (!event.target.className.includes("active")) showResources();
+    switchNavBarActive(event.target.id);
+  });
+  $("#tips-nav").click(function (event) {
+    if (!event.target.className.includes("active")) showTips();
+    switchNavBarActive(event.target.id);
+  });
+};
+
+//Introduction Page
+function showIntroduction(){
+    $ajaxUtils.sendGetRequest(introductionUrl, buildAndShowIntroduction, false);
+};
+
+function buildAndShowIntroduction (introduction) {
+  var sideHtml = $snippets["links"];
+  setHtml('#main-content', introduction); 
+  setHtml('#side-list', sideHtml);
 }
+
+//Plugin Page
+function showPlugins(){
+  if (!isSnippetsReady()) return setTimeout(showPlugins, 16);
+    $ajaxUtils.sendGetRequest(pluginsUrl, buildAndShowPlugins, true);
+};
 
 function buildAndShowPlugins (plugins) {
   var mainHtml = ""
@@ -69,18 +110,20 @@ function buildAndShowPlugins (plugins) {
     mainHtml += buildPluginMainHtml(plugin);
     sideHtml += buildPluginSideHtml(plugin);
   });
+  sideHtml = insertProperty($snippets["pluginListHeader"], "body", sideHtml);
+  sideHtml += $snippets["links"];
   setHtml('#main-content', mainHtml);
   setHtml('#side-list', sideHtml);
 }
 
 function buildPluginMainHtml (plugin) {
-  var html = global.$snippets["pluginHeader"];
+  var html = $snippets["pluginHeader"];
   for (property in plugin){
     html = insertProperty(html, property, plugin[property]);
   }
   var body = "";
   plugin.contents.forEach(function (content) {
-    var piece = global.$snippets["pluginBody"];
+    var piece = $snippets["pluginBody"];
     piece = insertProperty(piece, "description", content["description"]);
     piece = insertProperty(piece, "image", content["image"]);
     piece = insertProperty(piece, "extra", content["extra"]||"");
@@ -95,11 +138,44 @@ function buildPluginMainHtml (plugin) {
 }
 
 function buildPluginSideHtml (plugin) {
-  var html = global.$snippets["pluginList"];
+  var html = $snippets["pluginListBody"];
   for (property in plugin){
     html = insertProperty(html, property, plugin[property]);
   }
   return html;
+}
+
+//Demo page
+function showDemo(){
+    $ajaxUtils.sendGetRequest(demoUrl, buildAndShowDemo, false);
+};
+
+function buildAndShowDemo (demo) {
+  var sideHtml = $snippets["links"];
+  setHtml('#main-content', demo); 
+  setHtml('#side-list', sideHtml);
+}
+
+//Demo page
+function showResources(){
+    $ajaxUtils.sendGetRequest(resourcesURL, buildAndShowResources, false);
+};
+
+function buildAndShowResources (demo) {
+  var sideHtml = $snippets["links"];
+  setHtml('#main-content', demo); 
+  setHtml('#side-list', sideHtml);
+}
+
+//Tip page
+function showTips(){
+    $ajaxUtils.sendGetRequest(tipsURL, buildAndShowTips, false);
+};
+
+function buildAndShowTips (tip) {
+  var sideHtml = $snippets["links"];
+  setHtml('#main-content', tip); 
+  setHtml('#side-list', sideHtml);
 }
 
 var switchNavBarActive = function (id) {
