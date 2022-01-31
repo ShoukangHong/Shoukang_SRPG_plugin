@@ -75,7 +75,7 @@ img.demo-gif {
 
 @media (min-width: 480px) and (max-width: 767px) {
 	.nav-scroller{
-		font-size: 2vw;
+		font-size: 90%;
 	}
 	h2.blog-post-title{
 		font-size: 160%;
