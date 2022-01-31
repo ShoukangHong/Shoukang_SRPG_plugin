@@ -99,7 +99,7 @@ img.demo-gif {
 	}
 }
 
-@media (max-width: 568px) {
+@media (min-width: 480px) and (max-width: 567px) {
   #demoGame {
 		-moz-transform: scale(0.35);
 		-moz-transform-origin: 0 0;
@@ -114,4 +114,22 @@ img.demo-gif {
 	h2.blog-post-title{
 		font-size: 160%;
 	}
+}
+
+@media (max-width: 479px) {
+  #demoGame {
+		-moz-transform: scale(0.25);
+		-moz-transform-origin: 0 0;
+		-o-transform: scale(0.25);
+		-o-transform-origin: 0 0;
+		-webkit-transform: scale(0.25);
+		-webkit-transform-origin: 0 0;
+	}
+	#side-list{
+		font-size: 70%;
+	}
+	h2.blog-post-title{
+		font-size: 160%;
+	}
+}
 }
