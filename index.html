@@ -22,8 +22,8 @@
         -moz-user-select: none;
         user-select: none;
       }
-      #titleContainer {
-        background-image: url('images/cover.jpg')
+      body {
+        background-image: url("images/starlitSky.png");
       }
       @media (min-width: 768px) {
         .bd-placeholder-img-lg {
@@ -43,37 +43,38 @@
 
   </head>
   <body>
-<main class="container">
-  <div class="p-4 p-md-5 mb-4 text-white rounded bg-dark" id = "titleContainer">
-    <div class="col-md-6 px-0">
+<main class="container p-0">
+  <div class="p-0 p-md-5 mb-0 text-white rounded" id = "titleContainer">
+    <div class="col-md-12 px-0">
       <h1 class="display-4 fst-italic">Shoukang SRPG Plugins</h1>
       <p class="lead my-3"> A collection of SRPG Converter plugins on RPG Maker MV</p>
     </div>
   </div><!--end of Title-->
-  <div class="nav-scroller py-0 mb-3">
-    <nav class="nav d-flex justify-content-between">
-      <a class="p-1 link-secondary" href="#" id = "introduction-nav">Introduction</a>
-      <a class="p-1 link-secondary" href="#" id = "plugins-nav">Plugins</a>
-      <a class="p-1 link-secondary" href="#" id = "demo-nav">Demo</a>
-      <a class="p-1 link-secondary" href="#" id = "resources-nav">Resources</a>
-      <a class="p-1 link-secondary" href="#" id = "tips-nav">Tips</a>
-    </nav>
-  </div><!--end of scroll bar-->
-  <hr>
+  <div class="container">
+    <div class="nav-scroller px-xl-2 px-lg-1 py-0 mb-3">
+      <nav class="nav d-flex justify-content-between">
+        <a class="p-1 link-secondary" href="#" id = "introduction-nav">Introduction</a>
+        <a class="p-1 link-secondary" href="#" id = "plugins-nav">Plugins</a>
+        <a class="p-1 link-secondary" href="#" id = "demo-nav">Demo</a>
+        <a class="p-1 link-secondary" href="#" id = "resources-nav">Resources</a>
+        <a class="p-1 link-secondary" href="#" id = "tips-nav">Tips</a>
+      </nav>
+    </div><!--end of scroll bar-->
+    <hr>
 
-  <div class="row g-5">
-    <div class="col-lg-3 col-xl-3 d-none d-lg-block">
-      <div class="position-sticky" style="top: 2rem;" id = "side-list">
-      </div>
-    </div> <!--end of col-md-4-->
+    <div class="row g-5">
+      <div class="col-lg-3 col-xl-3 d-none d-lg-block">
+        <div class="position-sticky" style="top: 2rem;" id = "side-list">
+        </div>
+      </div> <!--end of col-md-4-->
 
-    <div class="col-lg-9 col-xl-9">
-      <br>
-      <div id ="main-content">
-      </div>
-    </div> <!--end of main content-->
+      <div class="col-lg-9 col-xl-9">
+        <br>
+        <div id ="main-content">
+        </div>
+      </div> <!--end of main content-->
+    </div>
   </div>
-
 </main>
 
 <footer class="blog-footer">

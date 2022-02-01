@@ -1,3 +1,5 @@
+*{color: whitesmoke;}
+
 h2.blog-post-title {
 	font-size: 2em;
 }
@@ -27,8 +29,15 @@ img.demo-gif {
    height: 624px;
 }
 
-.active {
-	background-color: lightgray;
+.p-1.link-secondary{
+	font-weight: bold;
+	text-decoration: none;
+	color: lightgray;
+}
+
+.p-1.link-secondary.active {
+	color: white;
+	text-decoration: underline;
 }
 
 @media (min-width: 1400px) {
