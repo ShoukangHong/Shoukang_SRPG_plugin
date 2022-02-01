@@ -4,6 +4,14 @@ h2.blog-post-title {
 	font-size: 2em;
 }
 
+a {
+	color: #7BF;
+}
+
+a:hover{
+	color: #BDF;
+}
+
 iframe{
 	max-width:100%;
 	max-height:388px;
