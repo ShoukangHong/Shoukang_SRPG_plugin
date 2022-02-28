@@ -273,7 +273,6 @@
     };
 
     Window_ActorCommand.prototype.drawItem = function(index) {
-        console.log(this.commandSymbol(index))
         var rect = this.itemRectForText(index);
         var align = this.itemTextAlign();
         if (['object', 'unitEvent', 'actor', 'enemy'].contains(this.commandSymbol(index))){
