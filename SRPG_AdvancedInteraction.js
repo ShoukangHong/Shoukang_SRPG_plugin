@@ -77,7 +77,7 @@
  * Type and eventId are optional, default type is 'circle', default eventId is the target event's Id.
  * If you set the eventId to the active event Id: $gameTemp.activeEvent().eventId(), the actor will wrap.
  * ==========================================================================================================================
- * v1.07 add command text color option 
+ * v1.07 add command text color option.
  * v1.06 fix compatibility issue with direction mode plugin
  * v1.05 fix wrap exceed map boundary bug. Fix object passability bug
  * v1.04 include a way to cast wrap skill and warp interaction!
@@ -272,10 +272,14 @@
         }
     };
 
+    Window_ActorCommand.prototype.highlightSymbolList = function(){
+        return ['object', 'unitEvent', 'actor', 'enemy'];
+    }
+    
     Window_ActorCommand.prototype.drawItem = function(index) {
         var rect = this.itemRectForText(index);
         var align = this.itemTextAlign();
-        if (['object', 'unitEvent', 'actor', 'enemy'].contains(this.commandSymbol(index))){
+        if (this.highlightSymbolList().contains(this.commandSymbol(index))){
             this.changeTextColor(this.textColor(_interactionColorId))
         } else{
             this.resetTextColor();
@@ -413,25 +417,27 @@
     Game_Player.prototype.startMapEvent = function(x, y, triggers, normal) {
         if ($gameSystem.isSubBattlePhase() === 'actor_Interaction' &&  $gameSystem.isSRPGMode() == true && !$gameMap.isEventRunning() ){
             if (triggers[0] !== 0 || $gameTemp.RangeTable(x, y)[0] !== true) return;
-
-            if ($gameSystem.srpgInteractionType() === 'wrap'){
-                var targetArray = $gameSystem.EventToUnit($gameTemp.targetEvent().eventId())
-                var tag = targetArray ? targetArray[1].srpgThroughTag() : 0;
-                if ($gameTemp.targetEvent().srpgMoveCanPass(x, y, 5, tag) && $gameMap.positionIsOpen(x, y)){
-                    $gameSystem.setSubBattlePhase('start_Interaction');
-                } else SoundManager.playBuzzer();
-                return;
-            }
-
-            var event = $gameMap.getInteractionEvent(x, y);
-            if (event){
-                $gameTemp.setTargetEvent(event);
-                $gameSystem.clearSrpgActorCommandStatusWindowNeedRefresh();
-                $gameSystem.setSubBattlePhase('start_Interaction');
-            } else SoundManager.playBuzzer();
-
+            this.startInteractionEvent(x, y, triggers, normal)
         } else _SRPG_Game_Player_startMapEvent.call(this, x, y, triggers, normal)
     };
+
+    Game_Player.prototype.startInteractionEvent = function(x, y, triggers, normal) {
+        if ($gameSystem.srpgInteractionType() === 'wrap'){
+            var targetArray = $gameSystem.EventToUnit($gameTemp.targetEvent().eventId())
+            var tag = targetArray ? targetArray[1].srpgThroughTag() : 0;
+            if ($gameTemp.targetEvent().srpgMoveCanPass(x, y, 5, tag) && $gameMap.positionIsOpen(x, y)){
+                $gameSystem.setSubBattlePhase('start_Interaction');
+            } else SoundManager.playBuzzer();
+            return;
+        }
+
+        var event = $gameMap.getInteractionEvent(x, y);
+        if (event){
+            $gameTemp.setTargetEvent(event);
+            $gameSystem.clearSrpgActorCommandStatusWindowNeedRefresh();
+            $gameSystem.setSubBattlePhase('start_Interaction');
+        } else SoundManager.playBuzzer();
+    }
 
     Scene_Map.prototype.triggerInteraction = function(){
         var type = $gameSystem.srpgInteractionType();
