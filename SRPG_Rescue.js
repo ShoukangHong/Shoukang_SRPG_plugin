@@ -90,6 +90,9 @@
         $gameTemp.clearMoveTable();
         $gameTemp.makeInteractionTable($gameTemp.activeEvent());
         $gameSystem.clearSrpgActorCommandWindowNeedRefresh();
+        var interactionEvents = $gameMap.surroundingInteractionEvents($gameTemp.activeEvent(), $gameSystem.srpgInteractionType(), $gameSystem.srpgInteractionName());
+        $gameTemp.setAutoMoveDestinationValid(true);
+        $gameTemp.setAutoMoveDestination(interactionEvents[0].posX(), interactionEvents[0].posY())
     };
 
     Scene_Map.prototype.commandDrop = function() {
