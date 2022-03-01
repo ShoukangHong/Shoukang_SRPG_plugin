@@ -15,6 +15,11 @@
  * @desc default text for drop interaction.
  * @default Drop
  *
+ * @param rescue state id
+ * @type number
+ * @desc stateeffect of rescue, set 0 to disable. Don't set remove conditions to the state effect. 
+ * @default 0
+ *
  * @param rescue requirenment formula
  * @desc default requirenment for rescue interaction.
  * @default a.agi - b.agi >= 4
@@ -49,6 +54,7 @@
     var _textRescue = parameters['text rescue'] || 'Rescue';
     var _textDrop = parameters['text drop'] || 'Drop';
     var _rescueFormula = parameters['rescue requirenment formula'] || 'a.agi - b.agi >= 4';
+    var _rescueState = Number(parameters['rescue state id']) || 0;
     var _rescueSprite = parameters['rescue sprite'] || '$Rescue';
 
     var _Window_ActorCommand_addActorInteractionCommand = Window_ActorCommand.prototype.addActorInteractionCommand
@@ -262,6 +268,12 @@
 
     Game_BattlerBase.prototype.setRescuedBattler = function(b){
         this._rescuedBattler = b
+        if (!_rescueState) return
+        if (!b){
+            this.removeState(_rescueState)
+        } else{
+            this.addState(_rescueState)
+        }
     }
 
 })();
