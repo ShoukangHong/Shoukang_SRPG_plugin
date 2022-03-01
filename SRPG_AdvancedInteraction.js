@@ -482,7 +482,7 @@
             if (!$gameSystem.srpgInteractionType() && !$gameMap.isEventRunning()){
                 // considering the moveAfterAction plugin, I copied the commandwait contents here, rather than call it
                 var actor = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
-                actor.onAllActionsEnd();
+                //actor.onAllActionsEnd();
                 this.srpgAfterAction();
                 $gameSystem.clearSrpgInteractionName();
             }
