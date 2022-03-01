@@ -11,8 +11,8 @@
 
 },{
 	"name":"SRPG_AdvancedInteraction",
-	"date":"Oct 29 2021",
-	"version": "v1.06",
+	"date":"March 1 2022",
+	"version": "v1.07",
 	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_AdvancedInteraction.js",
 	"contents" : [{
 		"description":"Rather than simply wait on an event to trigger an event, this plugin allows you to trigger an event via interaction commands. The interaction commands automatically appear when there are interactable events.",
@@ -108,6 +108,15 @@
 		"image" : "images/moveMethod.gif"
 	}]
 },{
+	"name":"SRPG_Rescue",
+	"date":"March 1 2022",
+	"version": "v1.00",
+	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_Rescue.js",
+	"contents" : [{
+		"description":"Allow actors to rescue and drop friends.",
+		"image" : "images/demoRescue.gif"
+	}]
+},{
 	"name":"SRPG_ShowAoERange",
 	"date":"Jan 21 2022",
 	"version": "v1.04",
@@ -127,8 +136,8 @@
 	}]
 },{
 	"name":"SRPG_Summon",
-	"date":"Jan 21 2022",
-	"version": "v1.01",
+	"date":"March 1 2022",
+	"version": "v1.05",
 	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_Summon.js",
 	"contents" : [{
 		"description":"This plugin allows you to summon events by coping events from a summon map. You can summon units or objects by using skills or triggering events.",
