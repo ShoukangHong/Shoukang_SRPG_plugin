@@ -1,5 +1,5 @@
 //====================================================================================================================
-// SRPG_SequenceBattle.js
+// SRPG_ActionOrder.js
 //--------------------------------------------------------------------------------------------------------------------
 // free to use and edit     v1.00 First release
 //====================================================================================================================
@@ -14,7 +14,7 @@
  * @help
  * Change the battle mode to sequenece battle based on speed of each battler.
  *
- * Action sequence rule:
+ * Action order rule:
  * Imagine an '100 meter dash' competition between all battlers, the first one reached the end will be the next
  * battler to act. It will immediatly go back to the start point and run again. The other battlers will keep running.
  *
@@ -33,10 +33,10 @@
 
 (function () {
     'use strict';
-    var parameters = PluginManager.parameters('SRPG_SequenceBattle');
+    var parameters = PluginManager.parameters('SRPG_ActionOrder');
     var _speedFormula = parameters['speed formula'] || 'a.agi';
     // ===================================================
-    // Utils
+    // Utils (Helper functions)
     // ===================================================
     Game_Map.prototype.aliveBattlerEvents = function() {
         return $gameMap.events().filter(function(event) {
@@ -110,6 +110,18 @@
         this._actionCount = 0
     };
 
+    var _Game_Actor_setup = Game_Actor.prototype.setup;
+    Game_Actor.prototype.setup = function(actorId) {
+        _Game_Actor_setup.call(this, actorId);
+        this._distToAction = this.standardDistToAction();
+    };
+
+    var _Game_Enemy_setup = Game_Enemy.prototype.setup;
+    Game_Enemy.prototype.setup = function(enemyId, x, y) {
+        _Game_Enemy_setup.call(this, enemyId, x, y);
+        this._distToAction = this.standardDistToAction();
+    };
+
     /**This is the best place I can find to reset a newly added battler's flag and wait time.*/
     var _Game_System_setEventToUnit = Game_System.prototype.setEventToUnit
     Game_System.prototype.setEventToUnit = function(event_id, type, data) {
@@ -132,18 +144,6 @@
     Game_System.prototype.srpgStartEnemyTurn = function() {
         this.srpgNextBattlerAction();
     };
-
-    // var _Game_Actor_setup = Game_Actor.prototype.setup;
-    // Game_Actor.prototype.setup = function(actorId) {
-    //     _Game_Actor_setup.call(this, actorId);
-    //     this.resetDistToAction();
-    // };
-
-    // var _Game_Enemy_setup = Game_Enemy.prototype.setup;
-    // Game_Enemy.prototype.setup = function(enemyId, x, y) {
-    //     _Game_Enemy_setup.call(this, enemyId, x, y);
-    //     this.resetDistToAction();
-    // };
 
     // ===================================================
     // Main sequence battle flow
@@ -340,7 +340,7 @@
     };
 
     Window_TurnIndicator.prototype.windowWidth = function() {
-        return 200;
+        return 250;
     };
 
     Window_TurnIndicator.prototype.windowHeight = function() {
@@ -379,7 +379,5 @@
 
     /**Test compatibility with skill note tag <addActionTimes: X> in SRPG_Core.
      * If anything breaks try to fix by editing Scene_Map.prototype.srpgAfterAction in this plugin*/
-
-
 
 })();
