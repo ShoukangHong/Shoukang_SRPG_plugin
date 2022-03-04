@@ -12,14 +12,14 @@
  * @default a.agi
  *
  * @help
- * Change the battle mode to sequenece battle based on speed of each battler.
+ * This plugin changes the battle mode to individual turn order based on the speed of each battler.
  *
  * Action order rule:
- * Imagine an '100 meter dash' competition between all battlers, the first one reached the end will be the next
- * battler to act. It will immediatly go back to the start point and run again. The other battlers will keep running.
+ * Imagine a '100 meter dash' competition between all battlers, the first one reached the end will be the next
+ * battler to act. It will immediately go back to the start point and run again. The other battlers will keep running.
  *
  * Turn rule:
- * If there are n units in battle. A turn would end after n actions. When the turn ends, states, buff will update and
+ * If there are n units in battle. A turn would end after n actions. When the turn ends, states, buffs will update and
  * event with <type:turnEnd> will start
  *
  * Tips:
