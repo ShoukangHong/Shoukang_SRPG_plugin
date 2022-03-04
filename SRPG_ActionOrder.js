@@ -167,8 +167,9 @@
 
         var nextBattler = this.nextBattler();
         if (nextBattler.isRestricted()){
+            nextBattler.resetDistToAction();
             this.updateActionSequence();
-            $gameSystem.updateActionCount()
+            $gameSystem.updateActionCount();
             this.srpgNextBattlerAction();
             return;
         }
