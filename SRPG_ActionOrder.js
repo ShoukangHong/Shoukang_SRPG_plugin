@@ -211,7 +211,6 @@
         }
         this.eventAfterAction();
 
-
         //srpg_moveAfterAction Fix
         if (battler.SrpgRemainingMove && battler.srpgTurnEnd() && !battler.isSrpgAfterActionMove() && 
             battler.SrpgRemainingMove() && !$gameTemp.isTurnEndFlag() &&
@@ -226,9 +225,7 @@
             $gameSystem.srpgNextBattlerAction();
         }
     };
-        // if (currentBattler.srpgTurnEnd() && !currentBattler.isSrpgAfterActionMove() && 
-        //     currentBattler.SrpgRemainingMove() && !$gameTemp.isTurnEndFlag() &&
-        //     $gameSystem.isBattlePhase() !== 'auto_actor_phase'){
+
     /**predict action sequence and store, refresh */
     Game_System.prototype.updateActionSequence = function() {
         var aliveBattlers = $gameMap.aliveBattlers()
@@ -327,8 +324,8 @@
     Window_TurnIndicator.prototype.constructor = Window_TurnIndicator;
 
 
-    // TODO: 1. Set window width, height, x and y position. 
-    //       2. Code what to draw in Window_TurnIndicator.prototype.refresh
+    /** @TODO: 1. Set window width, height, x and y position.
+     * 2. Code what to draw in Window_TurnIndicator.prototype.refresh*/
 
     /**@param x: x position of the window(top left)
      * @param y: y position of the window(top left)*/
@@ -374,14 +371,11 @@
         this.contents.blt(bitmap, sx, sy, pw, ph, x - pw / 2, y - ph);
     };
 
-    // ======================================================
-    // TODO: This is guidance on some other thing you might want to fix:
-    // ======================================================
-    /** to remove turn end sprite from enemies, check this function in SRPG_Core:
-     * Sprite_Character.prototype.updateCharacterFrame
-     */
-
-    /**Test compatibility with skill note tag <addActionTimes: X> in SRPG_Core.
+    /** @TODO: This is guidance on some other thing you might want to fix:
+     * 1. To remove turn end sprite from enemies, check this function in SRPG_Core:
+     * Sprite_Character.prototype.updateCharacterFrame.
+     * 
+     * 2. Test compatibility with skill note tag <addActionTimes: X> in SRPG_Core.
      * If anything breaks try to fix by editing Scene_Map.prototype.srpgAfterAction in this plugin*/
 
 })();
