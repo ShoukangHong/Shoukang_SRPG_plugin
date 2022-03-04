@@ -119,7 +119,7 @@
 	}]
 },{
 	"name":"SRPG_Rescue",
-	"date":"March 1 2022",
+	"date":"Mar 1 2022",
 	"version": "v1.00",
 	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_Rescue.js",
 	"contents" : [{
@@ -128,8 +128,8 @@
 	}]
 },{
 	"name":"SRPG_ShowAoERange",
-	"date":"Jan 21 2022",
-	"version": "v1.04",
+	"date":"Mar 4 2022",
+	"version": "v1.05",
 	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_ShowAoERange.js",
 	"contents" : [{
 		"description":"The original attack range only shows the battler's default skill range. This plugin will show the range and AoE Range of all available skills for a battler.",
@@ -146,7 +146,7 @@
 	}]
 },{
 	"name":"SRPG_Summon",
-	"date":"March 1 2022",
+	"date":"Mar 1 2022",
 	"version": "v1.05",
 	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_Summon.js",
 	"contents" : [{
