@@ -178,6 +178,9 @@
             this.setBattlePhase('auto_actor_phase');
             this.setSubBattlePhase('auto_actor_command');
         } else if (nextBattler.isActor()){
+            var nextEvent = nextBattler.event()
+            $gameTemp.setAutoMoveDestinationValid(true);
+            $gameTemp.setAutoMoveDestination(nextEvent.posX(), nextEvent.posY());
             this.setBattlePhase('actor_phase');
             this.setSubBattlePhase('initialize');
         } else {
