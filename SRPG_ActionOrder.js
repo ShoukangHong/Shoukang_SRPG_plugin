@@ -1,7 +1,7 @@
 //====================================================================================================================
 // SRPG_ActionOrder.js
 //--------------------------------------------------------------------------------------------------------------------
-// free to use and edit     v1.00 First release
+// free to use and edit     v1.01 Improve turn indicator window
 //====================================================================================================================
 /*:
  * @plugindesc Change the battle mode to sequenece battle based on speed of each battler.
@@ -10,6 +10,32 @@
  * @param speed formula
  * @desc default formula to calculate speed.
  * @default a.agi
+ *
+ * @param face number
+ * @type number
+ * @max 14
+ * @desc number of faces to display in turn indicator window(limited by face size and face padding)
+ * @default 5
+ *
+ * @param face size
+ * @type number
+ * @desc size of face in turn indicator window.
+ * @default 72
+ *
+ * @param face padding
+ * @type number
+ * @desc padding of face in turn indicator window.
+ * @default 6
+ *
+ * @param face frame
+ * @type file
+ * @dir img/system/
+ * @desc Image for face frame. Sample: github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/FaceFrame.png
+ * 
+ * @param face back
+ * @type file
+ * @dir img/system/
+ * @desc Image for face back. Sample: github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/Demos/FaceBack.png
  *
  * @help
  * This plugin changes the battle mode to individual turn order based on the speed of each battler.
@@ -25,6 +51,7 @@
  * Tips:
  * Event with <type:actorTurn> and <type:enemyTurn> will never run, as there the SRPG actor/enemy turn no longer exists.
  * ==========================================================================================================================
+ * v1.01 Improve turn indicator window
  * v1.00 first release!
  * =========================================================================================================================
  * Compatibility:
@@ -35,6 +62,11 @@
     'use strict';
     var parameters = PluginManager.parameters('SRPG_ActionOrder');
     var _speedFormula = parameters['speed formula'] || 'a.agi';
+    var _faceNumber = Number(parameters['face number']) || 5;
+    var _faceSize = Number(parameters['face size']) || 72;
+    var _facePadding = Number(parameters['face padding']);
+    var _faceFrame = parameters['face frame'];
+    var _faceBack = parameters['face back'];
     // ===================================================
     // Utils (Helper functions)
     // ===================================================
@@ -330,14 +362,37 @@
     /**@param x: x position of the window(top left)
      * @param y: y position of the window(top left)*/
     Window_TurnIndicator.prototype.initialize = function(x, y) {
-        x = x || 0;
-        y = y || Graphics.boxHeight / 4;
         var width = this.windowWidth();
         var height = this.windowHeight();
+        x = x || 0;
+        y = y || (Graphics.boxHeight - height)/2;
         Window_Base.prototype.initialize.call(this, x, y, width, height);
         this.setBackgroundType(2);
-        this._actionSequence = []
+        this._actionSequence = [];
+        this._faceFrame = ImageManager.loadSystem(_faceFrame);
+        this._faceBack = ImageManager.loadSystem(_faceBack);
+        this.resetCount();
         this.refresh();
+    };
+
+    Window_TurnIndicator.prototype.resetCount = function() {
+        this._count = 4;
+    };
+
+    Window_TurnIndicator.prototype.disableCount = function() {
+        this._count = Number.POSITIVE_INFINITY;
+    };
+
+    Window_TurnIndicator.prototype.faceSize = function() {
+        return _faceSize;
+    };
+
+    Window_TurnIndicator.prototype.faceNumber = function() {
+        return _faceNumber;
+    };
+
+    Window_TurnIndicator.prototype.facePadding = function() {
+        return _facePadding;
     };
 
     Window_TurnIndicator.prototype.windowWidth = function() {
@@ -345,31 +400,77 @@
     };
 
     Window_TurnIndicator.prototype.windowHeight = function() {
-        return (Graphics.boxHeight / 2 - (Graphics.boxHeight / 2) % this.fittingHeight(1));
+        var contetHeight = this.faceNumber() * (this.faceSize() + this.facePadding());
+        return Math.min(contetHeight + 2 * this.standardPadding(),
+            Graphics.boxHeight - (Graphics.boxHeight - 2 * this.standardPadding())%(this.faceSize() + this.facePadding()));
     };
 
     Window_TurnIndicator.prototype.refresh = function() {
+        var fp = this.facePadding();
+        var fw = Window_Base._faceWidth;
+        var fh = Window_Base._faceHeight
         this.contents.clear();
+        this.resetCount();
         this._actionSequence = $gameSystem.actionSequence();
-        for (var i = 0; i < this._actionSequence.length; i++){
-            var event = this._actionSequence[i].event();
-            this.drawCharacter(event.characterName(), event.characterIndex(), 18, this.lineHeight() * (i+1));
-            this.drawActorName(this._actionSequence[i], 48, this.lineHeight() * i);
+        for (var i = 0; i < Math.min(this._actionSequence.length, this.faceNumber()); i++){
+            var battler = this._actionSequence[i]
+
+            if (battler.isActor()){
+                this.drawActorFace(battler, 0, fp/2 + (this.faceSize() + fp)*i, fw, fh);
+            } else {
+                this.drawEnemyFace(battler, 0, fp/2 + (this.faceSize() + fp)*i, fw, fh);
+            }
+            //this.drawCharacter(event.characterName(), event.characterIndex(), 18, this.lineHeight() * (i+1));
+            // this.drawActorName(this._actionSequence[i], 48, this.lineHeight() * i);
         }
+    };
+
+    /** update again after certain frame in case image is not loaded*/
+    Window_TurnIndicator.prototype.update = function() {
+        Window_Base.prototype.update.call(this);
+        if (this._actionSequence){
+            this._count -= 1;
+            if (this._count <= 0){
+                this.refresh();
+                this.disableCount();
+            }
+        }
+    };
+
+    Window_TurnIndicator.prototype.drawFace = function(faceName, faceIndex, x, y, width, height) {
+        width = width || Window_Base._faceWidth;
+        height = height || Window_Base._faceHeight;
+        var bitmap = ImageManager.loadFace(faceName);
+        var pw = Window_Base._faceWidth;
+        var ph = Window_Base._faceHeight;
+        var sw = Math.min(width, pw);
+        var sh = Math.min(height, ph);
+        var dx = Math.floor(x + Math.max(width - pw, 0) / 2);
+        var dy = Math.floor(y + Math.max(height - ph, 0) / 2);
+        var sx = faceIndex % 4 * pw + (pw - sw) / 2;
+        var sy = Math.floor(faceIndex / 4) * ph + (ph - sh) / 2;
+        this.contents.blt(this._faceBack, 0, 0, this._faceBack.width, this._faceBack.height, dx, dy, this.faceSize(), this.faceSize());
+        this.contents.blt(bitmap, sx, sy, sw, sh, dx, dy, this.faceSize(), this.faceSize());
+        this.contents.blt(this._faceFrame, 0, 0, this._faceFrame.width, this._faceFrame.height, dx, dy, this.faceSize(), this.faceSize());
     };
 
     /**It's basically the same as Window_Base.prototype.drawCharacter. Only difference is var ph = ...
      * Some chararcters won't show up. The bug is somewhere else as the save/load menu also won't display some characters.*/
-    Window_TurnIndicator.prototype.drawCharacter = function(characterName, characterIndex, x, y) {
-        var bitmap = ImageManager.loadCharacter(characterName);
-        var big = ImageManager.isBigCharacter(characterName);
-        var pw = bitmap.width / (big ? 3 : 12);
-        var ph = bitmap.height / (big ? 4 : 8) * 7/10;
-        var n = characterIndex;
-        var sx = (n % 4 * 3 + 1) * pw;
-        var sy = (Math.floor(n / 4) * 4) * ph;
-        this.contents.blt(bitmap, sx, sy, pw, ph, x - pw / 2, y - ph);
-    };
+    // Window_TurnIndicator.prototype.drawCharacter = function(characterName, characterIndex, x, y) {
+    //     var bitmap = ImageManager.loadCharacter(characterName);
+    //     var big = ImageManager.isBigCharacter(characterName);
+    //     var pw = bitmap.width / (big ? 3 : 12);
+    //     var ph = bitmap.height / (big ? 4 : 8) * 7/10;
+    //     var n = characterIndex;
+    //     var sx = (n % 4 * 3 + 1) * pw;
+    //     var sy = (Math.floor(n / 4) * 4) * ph;
+    //     var that = this;
+    //     var nf = function () {
+    //         that.contents.blt(bitmap, sx, sy, pw, ph, x - pw / 2, y - ph);
+    //     };
+    //     bitmap.addLoadListener(nf);
+    //     //this.contents.blt(bitmap, sx, sy, pw, ph, x - pw / 2, y - ph);
+    // };
 
     /** @TODO: This is guidance on some other thing you might want to fix:
      * 1. To remove turn end sprite from enemies, check this function in SRPG_Core:
