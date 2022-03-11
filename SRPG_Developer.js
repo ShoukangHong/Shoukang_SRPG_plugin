@@ -266,7 +266,7 @@
             });
         }
 
-        if ($gameTemp.constandAutoBattle()){
+        if ($gameTemp.constandAutoBattle() && Game_System.actionSequence){
             $gameTemp.setTurnEndFlag(true);
             $gameTemp.setAutoBattleFlag(true);
             $gameMap.events().forEach(function(event){
@@ -278,6 +278,21 @@
         }
 
         if ($gameSystem.isDeveloperSRPGMode() && battler.battleMode() !== 'stand') $gameTemp.pushDeveloperLog(new SRPG_Log());
+    };
+
+    var _Game_System_srpgTurnEnd = Game_System.prototype.srpgTurnEnd
+    Game_System.prototype.srpgTurnEnd = function() {
+        _Game_System_srpgTurnEnd.call(this);
+        if ($gameTemp.constandAutoBattle()){
+            $gameTemp.setTurnEndFlag(true);
+            $gameTemp.setAutoBattleFlag(true);
+            $gameMap.events().forEach(function(event){
+                var actor = $gameSystem.EventToUnit(event.eventId());
+                if (actor && actor[1] && actor[1].isActor()) {
+                    actor[1].addState(_srpgAutoBattleStateId);
+                }
+            })
+        }
     };
 
     var _Game_Temp_initialize = Game_Temp.prototype.initialize 
