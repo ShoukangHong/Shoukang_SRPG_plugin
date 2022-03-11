@@ -224,7 +224,7 @@
         _SRPG_MB_SceneMap_create.call(this);
         $gameTemp.developerSpritesNeedRefresh = $gameSystem.isDeveloperSRPGMode();
     };
-    
+
     var _SRPG_MB_SceneMap_update = Scene_Map.prototype.update;
     Scene_Map.prototype.update = function() {
         _SRPG_MB_SceneMap_update.call(this);
@@ -240,7 +240,7 @@
             $gameTemp.currentLog().addBattle(actionArray[1], targetArray[1]);
         }
         _Scene_Map_srpgBattleStart.call(this, actionArray, targetArray);
-    }
+    };
 
     var _SRPG_SceneMap_createAllWindows = Scene_Map.prototype.createAllWindows;
     Scene_Map.prototype.createAllWindows = function() {
@@ -606,8 +606,8 @@
         while (this._currentLogIndex > 0){
             this._currentLogIndex -= 1;
             this.currentLog().setStart();
+            this.currentLog().reproduceAll();
         }
-        SceneManager._scene._developerLogWindow.hide();
         this.currentLog().reproduceAll();
         this.refreshDisplayInfo();
     }
