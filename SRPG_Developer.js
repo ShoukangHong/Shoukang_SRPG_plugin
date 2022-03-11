@@ -67,7 +67,7 @@
     var _maxFPS = 1000;
     var _baseFPS = 60;
     var _fpsOptions = [60, 90, 120, 180, 240, 360, 480, 600, 720, 960];
-    var _options = ['developerMode', 'srpgOnly', 'skipAnimation', 'accelerateWindow', 'accelerateMove'];
+    var _options = ['srpgOnly', 'skipAnimation', 'accelerateWindow', 'accelerateMove'];
 
     Game_Interpreter.prototype.developerModeBreak = function(){
         if (!$gameSystem.isDeveloperSRPGMode()) return;
@@ -82,18 +82,25 @@
         this._deltaTime = 1/(_fpsOptions[(idx + _fpsOptions.length + val)%_fpsOptions.length]);
         return this._deltaTime;
     }
+
+    Object.defineProperty(ConfigManager, '_deltaTime', {
+        get: function() { return SceneManager['_deltaTime']},
+        set: function(value) {SceneManager['_deltaTime'] = value},
+        configurable: true
+    });
+
+    Object.defineProperty(ConfigManager, 'developerMode', {
+        get: function() { return $gameSystem['developerMode']},
+        set: function(value) {$gameSystem.changeDeveloperMode()},
+        configurable: true
+    });
+
     _options.forEach(function(key){
         Object.defineProperty(ConfigManager, key, {
             get: function() { return $gameSystem[key]},
             set: function(value) {$gameSystem[key] = value},
             configurable: true
         });
-    });
-
-    Object.defineProperty(ConfigManager, '_deltaTime', {
-        get: function() { return SceneManager['_deltaTime']},
-        set: function(value) {SceneManager['_deltaTime'] = value},
-        configurable: true
     });
 
     var _Window_Options_statusText = Window_Options.prototype.statusText
@@ -206,26 +213,23 @@
     // =====================================
     // Overwrite functions for log
     // =====================================
-    var _SRPG_SceneMenu_createCommandWindow = Scene_Menu.prototype.createCommandWindow;
-    Scene_Menu.prototype.createCommandWindow = function() {
-        _SRPG_SceneMenu_createCommandWindow.call(this);
-        if ($gameSystem.isSRPGMode() == true) {
-            this._commandWindow.setHandler('developerMode', function(){$gameSystem.changeDeveloperMode();SceneManager.pop()});
-        }
-    };
-
     Scene_Map.prototype.createDeveloperLogWindow = function() {
         this._developerLogWindow = new Window_BattleLog();
         this.addWindow(this._developerLogWindow);
         this._developerLogWindow.hide();
     };
 
+    var _SRPG_MB_SceneMap_create = Scene_Map.prototype.create;
+    Scene_Map.prototype.create = function() {
+        _SRPG_MB_SceneMap_create.call(this);
+        $gameTemp.developerSpritesNeedRefresh = $gameSystem.isDeveloperSRPGMode();
+    };
+    
     var _SRPG_MB_SceneMap_update = Scene_Map.prototype.update;
     Scene_Map.prototype.update = function() {
         _SRPG_MB_SceneMap_update.call(this);
         if ($gameSystem.isDeveloperSRPGMode() && $gameTemp.developerSpritesNeedRefresh !== false){
             $gameTemp.currentLog().createData();
-            $gameTemp.currentLog().reproduceAll();
             $gameTemp.developerSpritesNeedRefresh = false;
         }
     };
