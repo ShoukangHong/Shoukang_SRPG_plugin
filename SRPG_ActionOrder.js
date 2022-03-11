@@ -1,7 +1,7 @@
 //====================================================================================================================
 // SRPG_ActionOrder.js
 //--------------------------------------------------------------------------------------------------------------------
-// free to use and edit     v1.01 Improve turn indicator window
+// free to use and edit     v1.02 Minor change on some function calls.
 //====================================================================================================================
 /*:
  * @plugindesc Change the battle mode to sequenece battle based on speed of each battler.
@@ -39,7 +39,7 @@
  *
  * @help
  * This plugin changes the battle mode to individual turn order based on the speed of each battler.
- *
+ * 
  * Action order rule:
  * Imagine a '100 meter dash' competition between all battlers, the first one reached the end will be the next
  * battler to act. It will immediately go back to the start point and run again. The other battlers will keep running.
@@ -50,7 +50,10 @@
  *
  * Tips:
  * Event with <type:actorTurn> and <type:enemyTurn> will never run, as there the SRPG actor/enemy turn no longer exists.
+ * a.distToAction is battler a's distance to the action. You can set the value to manipulate turn order.
+ * The initial value is 100 to repersent the 100 meter dash rule.
  * ==========================================================================================================================
+ * v1.02 Minor change on some function calls.
  * v1.01 Improve turn indicator window
  * v1.00 first release!
  * =========================================================================================================================
@@ -91,6 +94,15 @@
         return this.isBattler() && $gameSystem.EventToUnit(this.eventId())[1].isAlive()
     }
 
+    Object.defineProperties(Game_BattlerBase.prototype, {
+        distToAction: { get: function() { return this._distToAction; },
+            set: function(value) {this._distToAction = value}, configurable: true},
+        // dta:{ get: function() { return this._distToAction; },
+        //     set: function(value) {this._distToAction = value}, configurable: true},
+        // fairTurnMoved:{ get: function() { return this._fairTurnMoved; },
+        //     set: function(value) {this._fairTurnMoved = value}, configurable: true}
+    });
+
     Game_BattlerBase.prototype.standardDistToAction = function() {
         return 100; //100 meter dash
     }
@@ -101,7 +113,7 @@
     }
 
     Game_BattlerBase.prototype.waitTime = function() {
-        return this._distToAction / this.SRPGSpeed();
+        return this.distToAction / this.SRPGSpeed();
     }
 
     Game_BattlerBase.prototype.waitTimePerAction = function() {
@@ -109,11 +121,11 @@
     }
 
     Game_BattlerBase.prototype.updateDistToAction = function(time) {
-        this._distToAction -= time * this.SRPGSpeed();
+        this.distToAction -= time * this.SRPGSpeed();
     }
 
     Game_BattlerBase.prototype.resetDistToAction = function() {
-        this._distToAction = this.standardDistToAction();
+        this.distToAction = this.standardDistToAction();
     }
 
     Game_System.prototype.actionSequence = function() {
@@ -145,13 +157,13 @@
     var _Game_Actor_setup = Game_Actor.prototype.setup;
     Game_Actor.prototype.setup = function(actorId) {
         _Game_Actor_setup.call(this, actorId);
-        this._distToAction = this.standardDistToAction();
+        this.distToAction = this.standardDistToAction();
     };
 
     var _Game_Enemy_setup = Game_Enemy.prototype.setup;
     Game_Enemy.prototype.setup = function(enemyId, x, y) {
         _Game_Enemy_setup.call(this, enemyId, x, y);
-        this._distToAction = this.standardDistToAction();
+        this.distToAction = this.standardDistToAction();
     };
 
     /**This is the best place I can find to reset a newly added battler's flag and wait time.*/
@@ -261,10 +273,18 @@
     /**predict action sequence and store, refresh */
     Game_System.prototype.updateActionSequence = function() {
         var aliveBattlers = $gameMap.aliveBattlers()
-        var actionSequence = []
-        var battlerWaitTimes = aliveBattlers.map(function(battler){return battler.waitTime()})
+        var battlerWaitTimes = aliveBattlers.map(function(battler){return battler.waitTime()});
 
-        //predict action sequence of next 15 actions.
+        this.updateActionSequenceWithDashRule(aliveBattlers, battlerWaitTimes);
+        //console.log(aliveBattlers[0].name())
+        if ($gameSystem.isSRPGMode() && SceneManager._scene._turnIndicatorWindow){
+            SceneManager._scene._turnIndicatorWindow.refresh();
+        }
+    };
+
+    /**predict action sequence of next 15 actions based on 100 meter dash rule.*/
+    Game_System.prototype.updateActionSequenceWithDashRule = function(aliveBattlers, battlerWaitTimes){
+        var actionSequence = []
         while (actionSequence.length < 15){
             var nextIndex = 0
             for (var i = 0; i < aliveBattlers.length; i++){
@@ -276,15 +296,10 @@
             battlerWaitTimes[nextIndex] += aliveBattlers[nextIndex].waitTimePerAction();
         }
         this.setActionSequence(actionSequence);
-
         var nextBattler = this.nextBattler();
         var time = nextBattler.waitTime();
         aliveBattlers.forEach(function(battler){battler.updateDistToAction(time)})
-        //console.log(aliveBattlers[0].name())
-        if ($gameSystem.isSRPGMode() && SceneManager._scene._turnIndicatorWindow){
-            SceneManager._scene._turnIndicatorWindow.refresh();
-        }
-    }
+    };
 
     /**update action count and trigger turn end if meets requirenment*/
     Game_System.prototype.updateActionCount = function() {
