@@ -155,8 +155,8 @@
 	}]
 },{
 	"name":"SRPG_Summon",
-	"date":"Mar 1 2022",
-	"version": "v1.05",
+	"date":"Mar 28 2022",
+	"version": "v1.06",
 	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_Summon.js",
 	"contents" : [{
 		"description":"This plugin allows you to summon events by coping events from a summon map. You can summon units or objects by using skills or triggering events.",
