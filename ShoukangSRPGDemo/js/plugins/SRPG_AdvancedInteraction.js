@@ -1,7 +1,7 @@
 //====================================================================================================================
 // SRPG_AdvancedInteraction.js
 //--------------------------------------------------------------------------------------------------------------------
-// free to use and edit     v1.06 fix compatibility issue with direction mode plugin
+// free to use and edit     v1.07 add command text color option 
 //====================================================================================================================
 /*:
  * @plugindesc Add Advanced interaction for SRPG battle.
@@ -23,6 +23,12 @@
  * @param text battler interaction
  * @desc default text for battler interaction, if not specified by <act:xxxx>
  * @default talk
+ *
+ *
+ * @param interaction command color Id
+ * @type number
+ * @desc color id. refer to color table in img/system/Window.png, count start from 0.
+ * @default 29
  *
  * @param wrap appear Animation Id
  * @desc appear animation for wrap skill
@@ -71,6 +77,7 @@
  * Type and eventId are optional, default type is 'circle', default eventId is the target event's Id.
  * If you set the eventId to the active event Id: $gameTemp.activeEvent().eventId(), the actor will wrap.
  * ==========================================================================================================================
+ * v1.07 add command text color option.
  * v1.06 fix compatibility issue with direction mode plugin
  * v1.05 fix wrap exceed map boundary bug. Fix object passability bug
  * v1.04 include a way to cast wrap skill and warp interaction!
@@ -90,8 +97,9 @@
     var _textObject = parameters['text object interaction'] || 'interact';
     var _textUnitEvent = parameters['text unitEvent interaction'] || 'open';
     var _textTalk = parameters['text battler interaction'] || 'talk';
-    var _appearAnimation = Number(parameters['wrap appear Animation Id']) || 52;
-    var _disappearAnimation = Number(parameters['wrap disappear Animation Id']) || 52;
+    var _interactionColorId = Number(parameters['interaction command color Id'] || 29);
+    var _appearAnimation = Number(parameters['wrap appear Animation Id'] || 52);
+    var _disappearAnimation = Number(parameters['wrap disappear Animation Id'] || 52);
 // TODO: add plugin parameters for the command text.
 
 //=================================================================================================
@@ -264,6 +272,23 @@
         }
     };
 
+    Window_ActorCommand.prototype.highlightSymbolList = function(){
+        return ['object', 'unitEvent', 'actor', 'enemy'];
+    }
+    
+    Window_ActorCommand.prototype.drawItem = function(index) {
+        var rect = this.itemRectForText(index);
+        var align = this.itemTextAlign();
+        if (this.highlightSymbolList().contains(this.commandSymbol(index))){
+            this.changeTextColor(this.textColor(_interactionColorId))
+        } else{
+            this.resetTextColor();
+        }
+        this.changePaintOpacity(this.isCommandEnabled(index));
+        this.drawText(this.commandName(index), rect.x, rect.y, rect.width, align);
+        this.resetTextColor();
+    };
+
     var _Scene_Map_createSrpgActorCommandWindow = Scene_Map.prototype.createSrpgActorCommandWindow;
     Scene_Map.prototype.createSrpgActorCommandWindow = function(){
         _Scene_Map_createSrpgActorCommandWindow.call(this);
@@ -392,25 +417,27 @@
     Game_Player.prototype.startMapEvent = function(x, y, triggers, normal) {
         if ($gameSystem.isSubBattlePhase() === 'actor_Interaction' &&  $gameSystem.isSRPGMode() == true && !$gameMap.isEventRunning() ){
             if (triggers[0] !== 0 || $gameTemp.RangeTable(x, y)[0] !== true) return;
-
-            if ($gameSystem.srpgInteractionType() === 'wrap'){
-                var targetArray = $gameSystem.EventToUnit($gameTemp.targetEvent().eventId())
-                var tag = targetArray ? targetArray[1].srpgThroughTag() : 0;
-                if ($gameTemp.targetEvent().srpgMoveCanPass(x, y, 5, tag) && $gameMap.positionIsOpen(x, y)){
-                    $gameSystem.setSubBattlePhase('start_Interaction');
-                } else SoundManager.playBuzzer();
-                return;
-            }
-
-            var event = $gameMap.getInteractionEvent(x, y);
-            if (event){
-                $gameTemp.setTargetEvent(event);
-                $gameSystem.clearSrpgActorCommandStatusWindowNeedRefresh();
-                $gameSystem.setSubBattlePhase('start_Interaction');
-            } else SoundManager.playBuzzer();
-
+            this.startInteractionEvent(x, y, triggers, normal)
         } else _SRPG_Game_Player_startMapEvent.call(this, x, y, triggers, normal)
     };
+
+    Game_Player.prototype.startInteractionEvent = function(x, y, triggers, normal) {
+        if ($gameSystem.srpgInteractionType() === 'wrap'){
+            var targetArray = $gameSystem.EventToUnit($gameTemp.targetEvent().eventId())
+            var tag = targetArray ? targetArray[1].srpgThroughTag() : 0;
+            if ($gameTemp.targetEvent().srpgMoveCanPass(x, y, 5, tag) && $gameMap.positionIsOpen(x, y)){
+                $gameSystem.setSubBattlePhase('start_Interaction');
+            } else SoundManager.playBuzzer();
+            return;
+        }
+
+        var event = $gameMap.getInteractionEvent(x, y);
+        if (event){
+            $gameTemp.setTargetEvent(event);
+            $gameSystem.clearSrpgActorCommandStatusWindowNeedRefresh();
+            $gameSystem.setSubBattlePhase('start_Interaction');
+        } else SoundManager.playBuzzer();
+    }
 
     Scene_Map.prototype.triggerInteraction = function(){
         var type = $gameSystem.srpgInteractionType();
@@ -455,7 +482,7 @@
             if (!$gameSystem.srpgInteractionType() && !$gameMap.isEventRunning()){
                 // considering the moveAfterAction plugin, I copied the commandwait contents here, rather than call it
                 var actor = $gameSystem.EventToUnit($gameTemp.activeEvent().eventId())[1];
-                actor.onAllActionsEnd();
+                //actor.onAllActionsEnd();
                 this.srpgAfterAction();
                 $gameSystem.clearSrpgInteractionName();
             }

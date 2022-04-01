@@ -1,8 +1,7 @@
 //=============================================================================
 // SRPG_ShowAoERange.js
 //-----------------------------------------------------------------------------
-//Free to use and edit     v.1.04 Fix bug for range 0 skills
-// Complexity change from O(m^2 * r^2 * a^2 * 4^3) to O((m + r)^2 * a^2 * 4^2), much faster!
+//Free to use and edit     v.1.06 Faster make range table performance.
 //=============================================================================
 /*:
  * @plugindesc The original attack range only shows the enemy/actor's default skill range.
@@ -29,6 +28,7 @@
  * Tiles within attack range will be colored red, tiles not within attack range but within AoE range
  * will be colored differently.
  * ====================================================================================================
+ * v.1.06 Faster make range table performance.(The v1.03 complexity analysis is wrong)
  * v.1.05 Fix bug for attack skill id, fix a bug for range 0 AoE show range.
  * v.1.04 Fix bug for range 0 skills
  * v.1.03 Improved algorithm, no it's much faster!
@@ -58,7 +58,7 @@
 		if (!$gameMap.isEventRunning() && ($gameSystem.isBattlePhase() === 'actor_phase' &&
 		$gameSystem.isSubBattlePhase() === 'normal' || $gameSystem.isBattlePhase() === 'battle_prepare')){
 			var user = $gameSystem.EventToUnit(event.eventId())[1];
-		  $gameTemp.makeSearchedAoETable();
+			$gameTemp.makeSearchedAoETable();
 			$gameTemp.clearMoveTable();
 			event.makeMoveTable(event.posX(), event.posY(), user.srpgMove(), null, user.srpgThroughTag());
 			user.skills().forEach(function(item){//all skills
@@ -89,6 +89,49 @@
 		} 
 	};
 
+	Game_CharacterBase.prototype.makeRangeTable = function(x, y, range, unused, oriX, oriY, skill) {
+		var user = $gameSystem.EventToUnit(this.eventId())[1];
+		if (!skill || !user) return;
+		var minRange = user.srpgSkillMinRange(skill);
+		var edges = [];
+		var searched = [];
+		for (var i = 0; i < $dataMap.width; i++) {
+			searched[i] = [];
+		}
+		if (range > 0) edges = [[x, y, range, [0], []]];
+		if (minRange <= 0 && $gameTemp.RangeTable(x, y)[0] < 0) {
+			if ($gameTemp.MoveTable(x, y)[0] < 0) $gameTemp.pushRangeList([x, y, true]);
+			$gameTemp.setRangeTable(x, y, range, [0]);
+			$gameTemp.addRangeMoveTable(x, y, x, y);
+		}
+		$gameMap.makeSrpgLoSTable(this);
+
+		for (var i = 0; i < edges.length; i++) {
+			var cell = edges[i];
+			var drange = cell[2] - 1;
+			if (searched[cell[0]][cell[1]]) continue;
+			searched[cell[0]][cell[1]] = true;
+			for (var d = 2; d < 10; d += 2) {
+				if (cell[4][d] == 1) continue;
+				if (!this.srpgRangeCanPass(cell[0], cell[1], d)) continue;
+				var dx = $gameMap.roundXWithDirection(cell[0], d);
+				var dy = $gameMap.roundYWithDirection(cell[1], d);
+				var route = cell[3].concat(d);
+				var forward = cell[4].slice(0);
+				forward[10-d] = 1;
+				if (drange > 0) edges.push([dx, dy, drange, route, forward]);
+
+				if ($gameMap.distTo(x, y, dx, dy) >= minRange && this.srpgRangeExtention(dx, dy, x, y, skill, range)) {
+					if ($gameTemp.RangeTable(dx, dy)[0] < 0) {
+						$gameTemp.setRangeTable(dx, dy, drange, route);
+						if ($gameTemp.MoveTable(dx, dy)[0] < 0) $gameTemp.pushRangeList([dx, dy, true]);
+					}
+					$gameTemp.addRangeMoveTable(dx, dy, x, y);
+				}
+			}
+		}
+	};
+
 //for each tile in attack range, make AoE Table
 	Game_CharacterBase.prototype.makeAoETable = function(x, y, range, unused, skill, areaRange, areaminRange, shape, user) {
 		if (!skill || !user) return;
@@ -96,6 +139,10 @@
 		var width = $gameMap.width();
 		var height = $gameMap.height();
 		var edges = [[x, y, range, [0], []]];
+		var searched = [];
+		for (var i = 0; i < $dataMap.width; i++) {
+			searched[i] = [];
+		}
 		if (minRange <= 0 && $gameTemp.RangeTable(x, y)[0] < 0) {
 			if ($gameTemp.MoveTable(x, y)[0] < 0) $gameTemp.pushRangeList([x, y, true]);
 			$gameTemp.setRangeTable(x, y, range, [0]);
@@ -105,6 +152,8 @@
 		for (var i = 0; i < edges.length; i++) {
 			var cell = edges[i];
 			var drange = cell[2] - 1;
+			if (searched[cell[0]][cell[1]]) continue;
+			searched[cell[0]][cell[1]] = true;
 			for (var d = 2; d < 10; d += 2) {
 				if (cell[4][d] === 1) continue;
 				if (!this.srpgRangeCanPass(cell[0], cell[1], d)) continue;
@@ -114,7 +163,7 @@
 				var forward = cell[4].slice(0);
 				forward[10-d] = 1;
 				if (drange > 0) edges.push([dx, dy, drange, route, forward]);
-				if ($gameMap.distTo(x, y, dx, dy) >= minRange && this.srpgRangeExtention(dx, dy, x,	y, skill, range)) {
+				if ($gameMap.distTo(x, y, dx, dy) >= minRange && this.srpgRangeExtention(dx, dy, x, y, skill, range)) {
 					$gameTemp.setAoETable(dx, dy, areaRange, areaminRange, shape, d, skill, drange, route);
 				}
 			}
@@ -147,17 +196,17 @@
 		}
 	};
 
-    Game_Temp.prototype.makeSearchedAoETable = function(){
-    	this._searchedAoETable = [];
-        for (var i = 0; i < $dataMap.width; i++) {
-          var vartical = [];
-          for (var j = 0; j < $dataMap.height; j++) {
-            vartical[j] = [-1,-1,-1,-1];
-          }
-          this._searchedAoETable[i] = vartical;
-        }
-        //console.log(this._searchedAoETable)
-    }
+	Game_Temp.prototype.makeSearchedAoETable = function(){
+		this._searchedAoETable = [];
+		for (var i = 0; i < $dataMap.width; i++) {
+			var vartical = [];
+			for (var j = 0; j < $dataMap.height; j++) {
+			vartical[j] = [-1,-1,-1,-1];
+			}
+			this._searchedAoETable[i] = vartical;
+		}
+		//console.log(this._searchedAoETable)
+	}
 
 	Game_Temp.prototype.isAoESearched = function(dx, dy, skill, d, shape) {
 		return this._searchedAoETable[dx][dy][d/2 - 1] === skill.id;
@@ -189,8 +238,8 @@
 	};
 
 	Game_BattlerBase.prototype.srpgCanShowRange = function(skill){
-	    return (this.isSkillWtypeOk(skill) && this.canPaySkillCost(skill) &&
-	            !this.isSkillSealed(skill.id) && !this.isSkillTypeSealed(skill.stypeId));
+		return (this.isSkillWtypeOk(skill) && this.canPaySkillCost(skill) &&
+				!this.isSkillSealed(skill.id) && !this.isSkillTypeSealed(skill.stypeId));
 	};
 
 	Game_Event.prototype.canDrawAoE = function(areaRange){
@@ -208,14 +257,14 @@
 	};
 
 	if (!Game_Enemy.prototype.skills) {
-	    Game_Enemy.prototype.skills = function() {
-	      var skills = []
-	      for (var i = 0; i < this.enemy().actions.length; ++i) {
-	        var skill = $dataSkills[this.enemy().actions[i].skillId];
-	        if (skill) skills.push(skill);
-	      }
-	      return skills;
-	    }
+		Game_Enemy.prototype.skills = function() {
+			var skills = []
+			for (var i = 0; i < this.enemy().actions.length; ++i) {
+			var skill = $dataSkills[this.enemy().actions[i].skillId];
+			if (skill) skills.push(skill);
+			}
+			return skills;
+		}
 	};
 
 	Game_Map.prototype.isOccupied = function(x, y){

@@ -2,7 +2,7 @@
 //SRPG_Summon.js
 //=============================================================================
 /*:
- * @plugindesc Allow you to summon/enemy/objects during SRPG battle. v 1.04 Fix a bug for wrong action subject.
+ * @plugindesc Allow you to summon/enemy/objects during SRPG battle. v 1.06 Fix a bug for equip window not showing the right actor.
  * @author Shoukang
  *
  * @param Summon Map Id
@@ -66,6 +66,8 @@
  *     gives the number of alive party members, which doesn't take summoned actors into consideration.
  *     Can be used to check game end condition.
  * ===================================================================================================
+ * v 1.06 Fix a bug for equip window not showing the right actor.
+ * v 1.05 Fix a bug for sprite overlay.
  * v 1.04 Fix a bug for wrong action subject.
  * v 1.03 fix a bug where summoned battlers disappear after save & load.
  * v 1.02 can summon events above or below a battler.(for the use of summon magic circles)!However it's not allowed to summon multiply magic circles on the same tile.
@@ -150,7 +152,9 @@
         } else summonEvent.setType(type);
 
         if (SceneManager._scene instanceof Scene_Map){
-            SceneManager._scene._spriteset.createCharacters();
+            var sprite = new Sprite_Character(summonEvent)
+            SceneManager._scene._spriteset._characterSprites.push(sprite)
+            SceneManager._scene._spriteset._tilemap.addChild(sprite)
         }
         summonEvent.requestAnimation(_appearAnimation);
     }
@@ -285,6 +289,9 @@
     var _Game_Party_menuActor = Game_Party.prototype.menuActor
     Game_Party.prototype.menuActor = function() {
         if ($gameSystem.isSRPGMode() && this._menuActor){
+            if (!this.members().contains(this._menuActor)) {
+                this._menuActor = this.members()[0];
+            }
             return this._menuActor;
         } else return _Game_Party_menuActor.call(this);
     };
