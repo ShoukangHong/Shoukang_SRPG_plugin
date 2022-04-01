@@ -38,9 +38,7 @@ $(initialize);
 
 function initialize() {
   initSnippets();
-  initHandlers();
-  switchNavBarActive("plugins-nav");
-  showPlugins();
+  refreshPage();
 };
 
 //Snippets
@@ -62,27 +60,38 @@ function isSnippetsReady() {
   });
 };
 
-function initHandlers(){
-  $("#introduction-nav").click(function (event) {
-    if (!event.target.className.includes("active")) showIntroduction();
-    switchNavBarActive(event.target.id);
-  });
-  $("#plugins-nav").click(function (event) {
-    if (!event.target.className.includes("active")) showPlugins();
-    switchNavBarActive(event.target.id);
-  });
-  $("#demo-nav").click(function (event) {
-    if (!event.target.className.includes("active")) showDemo();
-    switchNavBarActive(event.target.id);
-  });
-  $("#resources-nav").click(function (event) {
-    if (!event.target.className.includes("active")) showResources();
-    switchNavBarActive(event.target.id);
-  });
-  $("#tips-nav").click(function (event) {
-    if (!event.target.className.includes("active")) showTips();
-    switchNavBarActive(event.target.id);
-  });
+global.addEventListener("hashchange", refreshPage);
+
+function refreshPage(){
+  if (!isSnippetsReady()) return setTimeout(refreshPage, 16);
+
+  var hash = global.location.hash;
+  switch (hash){
+    case "#Introduction":
+      showIntroduction();
+      switchNavBarActive("introduction-nav");
+      break;
+    case "#Plugins":
+    case "":
+    case "#":
+      showPlugins();
+      switchNavBarActive("plugins-nav");
+      break;
+    case "#Demo":
+      showDemo();
+      switchNavBarActive("demo-nav");
+      break;
+    case "#Resources":
+      showResources();
+      switchNavBarActive("resources-nav");
+      break;
+    case "Tips":
+      showTips();
+      switchNavBarActive("tips-nav");
+      break;
+    default:
+      return;
+  }
 };
 
 //Introduction Page
@@ -190,3 +199,26 @@ var switchNavBarActive = function (id) {
 };
 
 })(window);
+
+// function initHandlers(){
+//   $("#introduction-nav").click(function (event) {
+//     if (!event.target.className.includes("active")) showIntroduction();
+//     switchNavBarActive(event.target.id);
+//   });
+//   $("#plugins-nav").click(function (event) {
+//     if (!event.target.className.includes("active")) showPlugins();
+//     switchNavBarActive(event.target.id);
+//   });
+//   $("#demo-nav").click(function (event) {
+//     if (!event.target.className.includes("active")) showDemo();
+//     switchNavBarActive(event.target.id);
+//   });
+//   $("#resources-nav").click(function (event) {
+//     if (!event.target.className.includes("active")) showResources();
+//     switchNavBarActive(event.target.id);
+//   });
+//   $("#tips-nav").click(function (event) {
+//     if (!event.target.className.includes("active")) showTips();
+//     switchNavBarActive(event.target.id);
+//   });
+// };
