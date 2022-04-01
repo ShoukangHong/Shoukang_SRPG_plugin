@@ -85,7 +85,7 @@ function refreshPage(){
       showResources();
       switchNavBarActive("resources-nav");
       break;
-    case "Tips":
+    case "#Tips":
       showTips();
       switchNavBarActive("tips-nav");
       break;
