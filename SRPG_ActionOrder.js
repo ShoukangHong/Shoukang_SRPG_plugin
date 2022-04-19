@@ -1,7 +1,7 @@
 //====================================================================================================================
 // SRPG_ActionOrder.js
 //--------------------------------------------------------------------------------------------------------------------
-// free to use and edit     v1.02 Minor change on some function calls.
+// free to use and edit     v1.03 Fix event start bug and disable next L/R actor command.
 //====================================================================================================================
 /*:
  * @plugindesc Change the battle mode to sequenece battle based on speed of each battler.
@@ -53,6 +53,7 @@
  * a.distToAction is battler a's distance to the action. You can set the value to manipulate turn order.
  * The initial value is 100 to repersent the 100 meter dash rule.
  * ==========================================================================================================================
+ * v1.03 Fix event start bug and disable next L/R actor command.
  * v1.02 Minor change on some function calls.
  * v1.01 Improve turn indicator window
  * v1.00 first release!
@@ -166,6 +167,19 @@
         this.distToAction = this.standardDistToAction();
     };
 
+    Game_System.prototype.clearData = function() {
+        this._EventToUnit = [];
+        $gameSystem.clearSrpgAllActors();
+        while ($gameTemp.isSrpgEventList()) {
+            $gameTemp.shiftSrpgEventList();
+        }
+    };
+
+    /**These functions are not needed*/
+    Game_System.prototype.getNextLActor = function() {};
+
+    Game_System.prototype.getNextRActor = function() {};
+
     /**This is the best place I can find to reset a newly added battler's flag and wait time.*/
     var _Game_System_setEventToUnit = Game_System.prototype.setEventToUnit
     Game_System.prototype.setEventToUnit = function(event_id, type, data) {
@@ -188,7 +202,6 @@
     Game_System.prototype.srpgStartEnemyTurn = function() {
         this.srpgNextBattlerAction();
     };
-
     // ===================================================
     // Main sequence battle flow
     // ===================================================
@@ -269,7 +282,7 @@
             $gameSystem.srpgNextBattlerAction();
         }
     };
-
+    
     /**predict action sequence and store, refresh */
     Game_System.prototype.updateActionSequence = function() {
         var aliveBattlers = $gameMap.aliveBattlers()
@@ -391,7 +404,7 @@
     };
 
     Window_TurnIndicator.prototype.resetCount = function() {
-        this._count = 4;
+        this._count = 30;
     };
 
     Window_TurnIndicator.prototype.disableCount = function() {
@@ -445,8 +458,10 @@
         Window_Base.prototype.update.call(this);
         if (this._actionSequence){
             this._count -= 1;
-            if (this._count <= 0){
+            if (this._count%6 === 0){
                 this.refresh();
+            }
+            if (this._count == 0){
                 this.disableCount();
             }
         }
