@@ -11,8 +11,8 @@
 
 },{
 	"name":"SRPG_ActionOrder",
-	"date":"March 3 2022",
-	"version": "v1.00",
+	"date":"April 18 2022",
+	"version": "v1.03",
 	"link" : "https://github.com/ShoukangHong/Shoukang_SRPG_plugin/blob/main/SRPG_ActionOrder.js",
 	"contents" : [{
 		"description":"This plugin changes the battle mode to individual turn order based on the speed of each battler.",
