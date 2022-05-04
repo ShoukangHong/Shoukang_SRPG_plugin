@@ -1,7 +1,7 @@
 //====================================================================================================================
 // SRPG_ActionOrder.js
 //--------------------------------------------------------------------------------------------------------------------
-// free to use and edit     v1.03 Fix event start bug and disable next L/R actor command.
+// free to use and edit     v1.04 Will reset action sequence if new actor/enemy is added.
 //====================================================================================================================
 /*:
  * @plugindesc Change the battle mode to sequenece battle based on speed of each battler.
@@ -52,7 +52,11 @@
  * Event with <type:actorTurn> and <type:enemyTurn> will never run, as there the SRPG actor/enemy turn no longer exists.
  * a.distToAction is battler a's distance to the action. You can set the value to manipulate turn order.
  * The initial value is 100 to repersent the 100 meter dash rule.
+ * ========================================================================================================================
+ * Plugin commands
+ * $gameSystem.updateActionSequence();  will update action sequence window.
  * ==========================================================================================================================
+ * v1.04 Will reset action sequence if new actor/enemy is added.
  * v1.03 Fix event start bug and disable next L/R actor command.
  * v1.02 Minor change on some function calls.
  * v1.01 Improve turn indicator window
@@ -187,6 +191,9 @@
         if ($gameMap.event(event_id).isBattler()){
             this.EventToUnit(event_id)[1].resetDistToAction();
             this.EventToUnit(event_id)[1].setSrpgTurnEnd(true);
+            if ($gameSystem.isBattlePhase() !== 'initialize' && $gameSystem.isBattlePhase() !== 'battle_prepare') {
+                $gameSystem.updateActionSequence();
+            }
         }
     };
 
