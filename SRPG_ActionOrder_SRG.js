@@ -7,6 +7,20 @@
  * @plugindesc SRG‘s custom ActionOrder plugin version
  * @author Shoukang
  *
+ * @param speed bonus move
+ * @desc speed bonus of next turn when a battler moves.
+ * @default 0
+ *
+ * @param speed bonus stand
+ * @type number
+ * @desc speed bonus of next turn when a battler stand.
+ * @default 0
+ *
+ * @param speed bonus action
+ * @type number
+ * @desc speed bonus of next turn when a battler use skills/items, this will replace other types of speed bonus.
+ * @default 0
+ *
  * @param face number
  * @type number
  * @max 14
@@ -61,6 +75,9 @@
 (function () {
     'use strict';
     var parameters = PluginManager.parameters('SRPG_ActionOrder_SRG');
+    var _speedBonusMove = Number(parameters['speed bonus move']) || 0;
+    var _speedBonusStand = Number(parameters['speed bonus stand']) || 0;
+    var _speedBonusAction = Number(parameters['speed bonus action']) || 0;
     var _faceNumber = Number(parameters['face number']) || 5;
     var _faceSize = Number(parameters['face size']) || 72;
     var _facePadding = Number(parameters['face padding']);
@@ -123,9 +140,9 @@
         }
 
         if (step === 0){
-            this.speedPlus = 50; /** @param  不移动时增加的速度值。*/
+            this.speedPlus = _speedBonusStand;
         } else {
-            this.speedPlus = 25; /** @param  移动时增加的速度值, 可以用 step 得到移动的步数。*/
+            this.speedPlus = _speedBonusMove;
         }
     }
 
@@ -139,7 +156,7 @@
     Game_Battler.prototype.useItem = function(skill) {
         if ($gameSystem.isSRPGMode() && skill) {
             if (this.event() === $gameTemp.activeEvent()){
-                this.speedPlus = 0;     /** @param  使用技能时的速度增加值*/
+                this.speedPlus = _speedBonusAction;
             }
         }
         _Game_Battler_useItem.call(this, skill);
