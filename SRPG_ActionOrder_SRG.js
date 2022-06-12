@@ -1,10 +1,10 @@
 //====================================================================================================================
 // SRPG_ActionOrder_SRG.js
 //--------------------------------------------------------------------------------------------------------------------
-// SRG 定制的ActionOrder插件
+// SRG‘s custom ActionOrder plugin version
 //====================================================================================================================
 /*:
- * @plugindesc SRG 定制的ActionOrder插件
+ * @plugindesc SRG‘s custom ActionOrder plugin version
  * @author Shoukang
  *
  * @param face number
@@ -37,10 +37,10 @@
  * This plugin changes the battle mode to individual turn order based on the speed of each battler.
  * 
  * Action order rule:
- * 角色按照速度顺序行动，每个角色每回合只能行动一轮。
+ * Characters move in order of speed, and each character can only move one round per turn.
  *
  * Turn rule:
- * 当所有角色行动过后进入下一轮。
+ * Enter the next round when all characters have acted.
  *
  * Tips:
  * Event with <type:actorTurn> and <type:enemyTurn> will never run, as there the SRPG actor/enemy turn no longer exists.
@@ -116,10 +116,6 @@
             set: function(value) {this._actionOrder = value}, configurable: true},
     });
 
-    Game_BattlerBase.prototype.standardDistToAction = function() {
-        return 100; //100 meter dash
-    }
-
     Game_BattlerBase.prototype.changeSpeedPlusByMove = function(array) {
         var step = 0;
         for (var i = 0; i < array.length; i++){
@@ -169,22 +165,6 @@
     // compatibility stuff
     // ===================================================
 
-    // var _Game_Interpreter_addEnemy = Game_Interpreter.prototype.addEnemy;
-    // Game_Interpreter.prototype.addEnemy = function(eventId, enemyId) {
-    //     _Game_Interpreter_addEnemy.call(this, eventId, enemyId);
-    //     if ($gameSystem.EventToUnit(eventId) && $gameSystem.EventToUnit(eventId)[1]){
-    //         $gameSystem.srpgNextBattlerAction();
-    //     }
-    // };
-
-    // var _Game_Interpreter_addActor = Game_Interpreter.prototype.addActor;
-    // Game_Interpreter.prototype.addActor = function(eventId, actorId) {
-    //     _Game_Interpreter_addActor.call(this, eventId, actorId);
-    //     if ($gameSystem.EventToUnit(eventId) && $gameSystem.EventToUnit(eventId)[1]){
-    //         $gameSystem.srpgNextBattlerAction();
-    //     }
-    // };
-
     var _Game_System_initialize = Game_System.prototype.initialize;
     Game_System.prototype.initialize = function() {
         _Game_System_initialize.call(this);
@@ -233,6 +213,7 @@
     Game_System.prototype.srpgStartEnemyTurn = function() {
         this.srpgNextBattlerAction();
     };
+
     // ===================================================
     // Main sequence battle flow
     // ===================================================
@@ -422,8 +403,8 @@
     Window_TurnIndicator.prototype.initialize = function(x, y) {
         var width = this.windowWidth();
         var height = this.windowHeight();
-        x = x || 0;                                 /**@param 行动顺序窗口x轴位置（最左侧为0）*/
-        y = y || (Graphics.boxHeight - height)/2;   /**@param 行动顺序窗口y轴位置（最上侧为0）*/
+        x = x || 0;                                 /** @param 行动顺序窗口x轴位置（最左侧为0）*/
+        y = y || (Graphics.boxHeight - height)/2;   /** @param 行动顺序窗口y轴位置（最上侧为0）*/
         Window_Base.prototype.initialize.call(this, x, y, width, height);
         this.setBackgroundType(2);
         this._actionSequence = [];
@@ -571,30 +552,5 @@
             this.addChild(this._actionOrderSprite);
         }
     };
-
-    /**It's basically the same as Window_Base.prototype.drawCharacter. Only difference is var ph = ...
-     * Some chararcters won't show up. The bug is somewhere else as the save/load menu also won't display some characters.*/
-    // Window_TurnIndicator.prototype.drawCharacter = function(characterName, characterIndex, x, y) {
-    //     var bitmap = ImageManager.loadCharacter(characterName);
-    //     var big = ImageManager.isBigCharacter(characterName);
-    //     var pw = bitmap.width / (big ? 3 : 12);
-    //     var ph = bitmap.height / (big ? 4 : 8) * 7/10;
-    //     var n = characterIndex;
-    //     var sx = (n % 4 * 3 + 1) * pw;
-    //     var sy = (Math.floor(n / 4) * 4) * ph;
-    //     var that = this;
-    //     var nf = function () {
-    //         that.contents.blt(bitmap, sx, sy, pw, ph, x - pw / 2, y - ph);
-    //     };
-    //     bitmap.addLoadListener(nf);
-    //     //this.contents.blt(bitmap, sx, sy, pw, ph, x - pw / 2, y - ph);
-    // };
-
-    /** @TODO: This is guidance on some other thing you might want to fix:
-     * 1. To remove turn end sprite from enemies, check this function in SRPG_Core:
-     * Sprite_Character.prototype.updateCharacterFrame.
-     * 
-     * 2. Test compatibility with skill note tag <addActionTimes: X> in SRPG_Core.
-     * If anything breaks try to fix by editing Scene_Map.prototype.srpgAfterAction in this plugin*/
 
 })();
