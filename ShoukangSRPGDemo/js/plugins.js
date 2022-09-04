@@ -55,5 +55,5 @@ var $plugins =
 {"name":"Fullscreen_Options","status":false,"description":"v1.1 Add fullscreen option, force fullscreen in Stretch Mode and disable F3.","parameters":{"fullscreenOptionName":"Fullscreen","forceFullscreen":"false","Add command to option?":"true","Disable F3?":"true","Disable F4?":"false"}},
 {"name":"RS_MessageAlign","status":true,"description":"(v1.0.12) This plugin allows you to align the text in the message system.","parameters":{}},
 {"name":"MPP_ScrollBar","status":true,"description":"【ver.2.2】ウィンドウにスクロールバーを追加します。","parameters":{"Veiw Time":"0","Scroll Bar Color1":"160,160,160","Scroll Bar Color2":"192,192,192","Scroll Bar Width":"12","Right Padding":"5","Hitbox Width":"24"}},
-{"name":"SRPG_Developer","status":true,"description":"Allow you to skip animation, accelerate move and window(message). Add SRPG battle review.","parameters":{}}
+{"name":"SRPG_Developer","status":false,"description":"Allow you to skip animation, accelerate move and window(message). Add SRPG battle review.","parameters":{}}
 ];
