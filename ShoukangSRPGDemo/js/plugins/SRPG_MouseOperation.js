@@ -3,6 +3,7 @@
 // Copyright (c) 2020 SRPG Team. All rights reserved.
 // Released under the MIT license.
 // http://opensource.org/licenses/mit-license.php
+// Shoukang Edit: fix a bug on line 511 that causes loading error.
 //=============================================================================
 /*:
 @plugindesc SRPG mouse operation improvements
@@ -507,7 +508,7 @@ Game_Map.prototype.camCenterTo = function(obj, delay) {
 $TouchInput_onWheel = TouchInput._onWheel;
 TouchInput._onWheel = function(event) {
   $TouchInput_onWheel.call(this, event);
-  if (!$.Parameters.isWheelPrevNext) return;
+  if (!$.Parameters.isWheelPrevNext || !$gameSystem || !$gamePlayer) return;
   if ($gameSystem.isSubBattlePhase() !== 'normal') return;
   if ($gamePlayer && $gamePlayer.isMoving()) return;
   if(this._events.wheelY > 0){
