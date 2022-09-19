@@ -37,15 +37,20 @@ img.demo-gif {
    height: 624px;
 }
 
+
 .p-1.link-secondary{
+	margin-top: 7px;
+	border-radius: 15px;
+  border: 1px solid #FFFFFF;
 	font-weight: bold;
 	text-decoration: none;
 	color: lightgray;
+	width: 100px;
 }
 
 .p-1.link-secondary.active, .p-1.link-secondary:hover {
-	color: white;
-	text-decoration: underline;
+	border: 1px solid #FFD700;
+	color: #FFD700;
 }
 
 @media (min-width: 1400px) {
