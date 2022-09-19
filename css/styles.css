@@ -39,9 +39,10 @@ img.demo-gif {
 
 
 .p-1.link-secondary{
-	margin-top: 9px;
+	margin-top: 8px;
 	border-radius: 12px;
   border: 1px solid whitesmoke;
+  vertical-align: middle;
 	font-weight: bold;
 	text-decoration: none;
 	color: whitesmoke;
