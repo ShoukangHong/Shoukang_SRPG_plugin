@@ -39,18 +39,19 @@ img.demo-gif {
 
 
 .p-1.link-secondary{
-	margin-top: 7px;
-	border-radius: 15px;
-  border: 1px solid #FFFFFF;
+	margin-top: 9px;
+	border-radius: 12px;
+  border: 1px solid whitesmoke;
 	font-weight: bold;
 	text-decoration: none;
-	color: lightgray;
+	color: whitesmoke;
 	width: 110px;
 }
 
 .p-1.link-secondary.active, .p-1.link-secondary:hover {
 	border: 1px solid #FFD700;
-	color: #FFD700;
+	background: whitesmoke;
+	color: #000000;
 }
 
 @media (min-width: 1400px) {
