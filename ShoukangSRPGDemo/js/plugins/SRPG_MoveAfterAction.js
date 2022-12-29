@@ -1,7 +1,7 @@
 //=============================================================================
 // SRPG_MoveAfterAction.js
 //-----------------------------------------------------------------------------
-// Free to use and edit   version 1.03 fix bug for not clearing movetile after action
+// Free to use and edit   version 1.04 fix bug for after action move when actor is defeated.
 //=============================================================================
 /*:
  * @plugindesc 
@@ -18,6 +18,7 @@
  * <MoveAfterAction>    with this note tag the actor can move again when it has remaining move.
  * Enemy units and auto battle actors can not move after action, because they don't know how to use it.
  * ==========================================================================================================================
+ * version 1.04 fix bug for after action move when actor is defeated.
  * version 1.03 fix bug for not clearing movetile after action
  * version 1.02 fix bug for auto battle, can auto select actor if the actor can do move after action
  * version 1.01 enable state notetags
@@ -74,7 +75,7 @@
     };
 //check actor, class and equipments.
     Game_Actor.prototype.canMoveAfterAction = function(type) {
-        if (this.srpgTurnEnd()) return false;
+        if (this.srpgTurnEnd() || this.isDead()) return false;
         if (_srpgAutoBattleStateId && this.isStateAffected(_srpgAutoBattleStateId)) return false
         if (this.actor().meta.MoveAfterAction) return true;
         if (this.currentClass().meta.MoveAfterAction) return true;
@@ -101,7 +102,7 @@
         var oriX = $gameTemp.activeEvent().posX();
         var oriY = $gameTemp.activeEvent().posY();
         shoukang_Scene_Map_srpgAfterAction.call(this);
-        if (currentBattler.srpgTurnEnd() && !currentBattler.isSrpgAfterActionMove() && 
+        if (currentBattler.isAlive() && currentBattler.srpgTurnEnd() && !currentBattler.isSrpgAfterActionMove() && 
             currentBattler.SrpgRemainingMove() && !$gameTemp.isTurnEndFlag() &&
             $gameSystem.isBattlePhase() !== 'auto_actor_phase'){
             currentBattler.setSrpgAfterActionMove(true);
