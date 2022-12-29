@@ -1,7 +1,7 @@
 //====================================================================================================================
 // SRPG_Rescue.js
 //--------------------------------------------------------------------------------------------------------------------
-// free to use and edit     v1.00 First release
+// free to use and edit     v1.01 Fix bug for unable to drop actor at where they were rescued.
 //====================================================================================================================
 /*:
  * @plugindesc Add Advanced interaction for SRPG battle.
@@ -42,6 +42,7 @@
  * (a.actor().meta.carrier || a.currentClass().meta.carrier) && a.agi - b.agi >= 4
  * The '(a.actor().meta.carrier || a.currentClass().meta.carrier)' part check for the meta data.
  * ==========================================================================================================================
+ * v1.01 Fix bug for unable to drop actor at where they were rescued.
  * v1.00 first release!
  * =========================================================================================================================
  * Compatibility:
@@ -109,17 +110,22 @@
     var _SRPG_Game_Player_startInteractionEvent = Game_Player.prototype.startInteractionEvent
     Game_Player.prototype.startInteractionEvent = function(x, y, triggers, normal) {
         if ($gameSystem.srpgInteractionType() === 'drop'){
-            $gameTemp.targetEvent().appear()//appear so that srpgMoveCanPass can work properly
-            $gameTemp.activeEvent().turnTowardPlayer()
-            var targetArray = $gameSystem.EventToUnit($gameTemp.targetEvent().eventId())
-            var tag = targetArray ? targetArray[1].srpgThroughTag() : 0;
-            if ($gameTemp.targetEvent().srpgMoveCanPass($gameTemp.activeEvent().posX(), $gameTemp.activeEvent().posY(), $gameTemp.activeEvent().direction(), tag) &&
-                $gameMap.positionIsOpen(x, y)){
-                $gameSystem.setSubBattlePhase('start_Interaction');
+            if ($gameMap.positionIsOpen(x, y)){
+                $gameTemp.targetEvent().appear()//appear so that srpgMoveCanPass can work properly
+                $gameTemp.activeEvent().turnTowardPlayer()
+                var targetArray = $gameSystem.EventToUnit($gameTemp.targetEvent().eventId())
+                var tag = targetArray ? targetArray[1].srpgThroughTag() : 0;
+                if ($gameTemp.targetEvent().pos(x, y) || 
+                    $gameTemp.targetEvent().srpgMoveCanPass($gamePlayer.posX(), 
+                        $gamePlayer.posY(), 5, tag)){
+                    $gameSystem.setSubBattlePhase('start_Interaction');
+                } else {
+                    SoundManager.playBuzzer();
+                }
+                $gameTemp.targetEvent().erase()
             } else {
                 SoundManager.playBuzzer();
             }
-            $gameTemp.targetEvent().erase()
         } else _SRPG_Game_Player_startInteractionEvent.call(this, x, y, triggers, normal)
     }
 
@@ -159,7 +165,7 @@
         $gameSystem.clearSrpgInteractionType();
         targetEvent.refreshImage();
         this._spriteset._characterSprites.forEach(function(sprite) {
-            if (sprite._character instanceof Game_Event && sprite._character === targetEvent) {
+            if (sprite._character === targetEvent) {
                 sprite.show()
             }
         });
